@@ -86,3 +86,17 @@ npm run test:baseline
 - 真实浏览器登录后刷新页面仍保持会话。自签证书不能证明生产证书下的 cookie 存储；生产必须用受信任证书再验一次。
 - Archive Administrator 可在 Admin 中创建、重新打开、修改并发布 Work；缺必填字段时发布给出校验反馈且不进入已发布读取。
 - 带 `ARCHIVE_READ_TOKEN` 的 `GET /api/archive/v1/works/:archiveId` 只返回已发布 Work 的 `{ data: { archiveId, title, summary } }`；草稿与未授权请求不可读。
+- Archive Administrator 可上传受支持的图片或 PDF（产品上限 50 MiB），在 Admin / 预览 URL 中查看 Media Item，并通过 Work 的 `mediaItems`（WorkMedia Relationship）关联；超限上传失败且不留下 Media Item。
+- 媒体落在宿主机 `CMS_MEDIA_PATH` bind mount；本地基线通过 control `POST /restart` 验证 API 进程重建后预览仍可用。
+
+## 发布（K4F7/cms#10）
+
+1. 在 louis 上安装 OpenResty 站点（含独立 `location = /deploy`），访问日志使用不含 body 的格式。
+2. 安装并启用 `deploy/webhook/cms-deploy-webhook.service`（监听 `127.0.0.1:9100`）。
+3. 在 GitHub Environment `production` 配置：
+   - `CMS_DEPLOY_WEBHOOK_URL`（例如 `https://api.example.com/deploy`）
+   - `CMS_DEPLOY_WEBHOOK_SECRET`
+   - 可选 `CMS_RUNTIME_ENV_JSON`（写入 VPS `deploy/.env` 的运行时密钥 JSON）
+4. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`，再 HMAC 调用 webhook。
+5. 成功响应含 `gitSha` 与 `imageDigest`；健康失败不剪枝。回滚：对同一 webhook 发送 `{ "action": "redeploy-previous" }`。
+6. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。

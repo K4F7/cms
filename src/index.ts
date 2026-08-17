@@ -1,5 +1,5 @@
 import type { Core } from '@strapi/strapi';
-import { appVersion, healthResponse } from './health.cjs';
+import { appVersion, healthResponse, imageDigest } from './health.cjs';
 
 let applicationReady = false;
 
@@ -45,7 +45,7 @@ export default {
       }
 
       const ready = applicationReady && (await databaseReady(strapi));
-      const result = healthResponse(ready, appVersion());
+      const result = healthResponse(ready, appVersion(), imageDigest());
       ctx.status = result.statusCode;
       ctx.body = result.body;
     });

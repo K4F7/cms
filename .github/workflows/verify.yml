@@ -2,8 +2,6 @@ name: verify
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 jobs:
   baseline:
@@ -17,6 +15,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: node --test --test-timeout=60000 tests/deploy-webhook.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - run: npm run test:baseline
