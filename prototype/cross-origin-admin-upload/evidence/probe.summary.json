@@ -1,0 +1,24 @@
+{
+  "question": "K4F7/cms#5",
+  "passed": 18,
+  "failed": 0,
+  "origins": {
+    "admin": "https://127.0.0.1:8443",
+    "api": "https://localhost:9443",
+    "unapproved": "https://127.0.0.1:8844"
+  },
+  "highlights": [
+    "CORS approved origin: 204 ACAO=https://127.0.0.1:8443 ACAC=true",
+    "CORS unapproved origin: no ACAO",
+    "invalid login: 400 Invalid credentials, no Set-Cookie",
+    "login Set-Cookie: strapi_admin_refresh + .sig; path=/admin; samesite=none; secure; httponly",
+    "login body keys: token, accessToken, user",
+    "bearer-only /admin/users/me: 200",
+    "POST /admin/access-token with refresh cookie: 200 new token",
+    "dead token: 401 Missing or invalid credentials",
+    "Work create/edit/publish: 200",
+    "upload under 50 MiB + preview: 200",
+    "oversize: 413 FileTooBig, media count unchanged",
+    "API process restart: preview and Work still readable"
+  ]
+}

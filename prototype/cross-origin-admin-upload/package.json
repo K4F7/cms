@@ -1,0 +1,14 @@
+{
+  "name": "cross-origin-admin-upload-prototype",
+  "private": true,
+  "description": "PROTOTYPE -- wipe me. Answers K4F7/cms#5 split-origin Admin/API login, refresh, upload, preview, and publish.",
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "probe": "node scripts/probe.mjs",
+    "browser": "node scripts/browser-evidence.mjs",
+    "certs": "node scripts/make-certs.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.15.0"
+  }
+}

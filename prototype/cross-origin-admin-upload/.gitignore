@@ -1,0 +1,14 @@
+node_modules
+certs/*.pem
+evidence/*.png
+evidence/probe.json
+evidence/browser.json
+strapi/.tmp
+strapi/.cache
+strapi/.strapi
+strapi/build
+strapi/dist
+strapi/node_modules
+strapi/.env
+strapi/public/uploads/*
+!strapi/public/uploads/.gitkeep

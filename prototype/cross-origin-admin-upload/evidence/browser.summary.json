@@ -1,0 +1,27 @@
+{
+  "question": "K4F7/cms#5 browser",
+  "origins": {
+    "crossSiteAdmin": "https://127.0.0.1:8443",
+    "sameSiteAdmin": "https://localhost:8444",
+    "api": "https://localhost:9443"
+  },
+  "crossSite": {
+    "loginStatus": 200,
+    "loginSetCookieAttrs": "path=/admin; samesite=none; secure; httponly",
+    "meStatus": 401,
+    "meRequestCookie": null,
+    "meAuthorization": "Bearer null",
+    "refreshStatus": 401,
+    "apiCookiesStored": []
+  },
+  "sameSite": {
+    "loginStatus": 200,
+    "loginSetCookieAttrs": "path=/admin; samesite=none; secure; httponly",
+    "meStatus": 401,
+    "meRequestCookie": null,
+    "meAuthorization": "Bearer null",
+    "refreshStatus": 401,
+    "apiCookiesStored": []
+  },
+  "note": "Admin SPA reached the API. Login succeeded. The SPA then sent Authorization: Bearer null and Chrome stored no refresh cookie. Tokens omitted."
+}
