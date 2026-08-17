@@ -15,10 +15,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: node --test --test-timeout=60000 tests/deploy-webhook.test.mjs
+      - run: node --test --test-timeout=60000 tests/acceptance-report.test.mjs tests/deploy-webhook.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - run: npm run test:baseline
+      - run: npm run test:acceptance
         env:
           CI: true
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          APP_VERSION: ${{ github.sha }}
+          CMS_IMAGE_DIGEST: sha256:ci-acceptance

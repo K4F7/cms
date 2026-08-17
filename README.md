@@ -28,7 +28,16 @@ npm install
 npm run test:baseline
 ```
 
-这会拉起生产形态的分离 origin（预构建 Admin + TLS 代理 API），并检查公开健康检查与 Admin→API 登录。生产配置与验证步骤见 [docs/production-baseline.md](docs/production-baseline.md)。
+这会拉起生产形态的分离 origin（预构建 Admin + TLS 代理 API），并检查公开健康检查与 Admin→API 登录、Work、Media Item 与发布 webhook 契约。生产配置见 [docs/production-baseline.md](docs/production-baseline.md)。
+
+首版验收（#11）写入可复现、已脱敏的证据，并固定「只保证同机容器重建、不容灾」：
+
+```powershell
+npm run typecheck
+npm run test:acceptance
+```
+
+报告见 [docs/acceptance/first-version.md](docs/acceptance/first-version.md)；本地证据落在 `.tmp/acceptance/`（不入库）。
 
 ## 边界
 

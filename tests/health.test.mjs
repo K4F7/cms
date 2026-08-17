@@ -23,6 +23,11 @@ test('public health reports ok and the current application version', async (t) =
   assert.equal(res.status, 200);
   assert.equal(body.status, 'ok');
   assert.equal(body.version, expectedVersion);
+
+  const expectedDigest = process.env.CMS_IMAGE_DIGEST || process.env.IMAGE_DIGEST;
+  if (expectedDigest) {
+    assert.equal(body.imageDigest, expectedDigest);
+  }
 });
 
 test('public health reports not_ready when the application cannot serve', async () => {

@@ -1,6 +1,8 @@
 /**
  * Start the production-shaped local stack, then run health, Admin→API login,
- * Work authoring, and Archive Read Contract checks. Used by `npm run test:baseline`.
+ * Work authoring, Media Item, deploy-webhook, and Archive Read Contract checks.
+ * Used by `npm run test:baseline`. For acceptance evidence + report output use
+ * `npm run test:acceptance` (K4F7/cms#11).
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -8,12 +10,15 @@ import { ADMIN, APP_VERSION, ARCHIVE_READ_TOKEN, ORIGINS, PORTS, root, waitForUr
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+const IMAGE_DIGEST = process.env.CMS_IMAGE_DIGEST || 'sha256:baseline-local';
+
 const stack = spawn(process.execPath, [join(root, 'scripts', 'start-baseline.mjs')], {
   cwd: root,
   stdio: ['ignore', 'pipe', 'pipe'],
   env: {
     ...process.env,
     APP_VERSION,
+    CMS_IMAGE_DIGEST: IMAGE_DIGEST,
   },
 });
 
@@ -50,6 +55,7 @@ try {
         CMS_UNAPPROVED_ORIGIN: ORIGINS.unapproved,
         CMS_CONTROL_ORIGIN: `http://127.0.0.1:${PORTS.control}`,
         APP_VERSION,
+        CMS_IMAGE_DIGEST: IMAGE_DIGEST,
         ARCHIVE_ADMIN_EMAIL: ADMIN.email,
         ARCHIVE_ADMIN_PASSWORD: ADMIN.password,
         ARCHIVE_READ_TOKEN,

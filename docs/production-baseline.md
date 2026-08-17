@@ -61,6 +61,7 @@ Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/arc
 $env:CMS_API_ORIGIN="https://api.example.com"
 $env:CMS_ADMIN_ORIGIN="https://admin.example.com"
 $env:APP_VERSION="<git-sha>"
+$env:CMS_IMAGE_DIGEST="<image-digest>"
 $env:ARCHIVE_ADMIN_EMAIL="<archive-administrator-email>"
 $env:ARCHIVE_ADMIN_PASSWORD="<from GitHub Environment production>"
 $env:ARCHIVE_READ_TOKEN="<archive-read-machine-credential>"
@@ -68,11 +69,14 @@ $env:CMS_REQUIRE_BROWSER_SESSION="1"
 npm test
 ```
 
-本地生产形态（自签证书，SQLite）完整跑通同一组 seam：
+本地生产形态（自签证书，SQLite）完整跑通同一组 seam，并写出首版验收证据：
 
 ```powershell
 npm run test:baseline
+npm run test:acceptance
 ```
+
+首版验收结论、检查表与「不容灾」承诺见 [acceptance/first-version.md](acceptance/first-version.md)。
 
 检查项：
 

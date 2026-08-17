@@ -275,18 +275,34 @@ test('Archive Administrator can upload and preview a Media Item from Admin', asy
   }
 });
 
-test('Media Item preview remains available after API process restart', async (t) => {
+test('Work, Media Item, WorkMedia Relationship, and preview survive API process restart', async (t) => {
   if (!apiOrigin || !adminOrigin) {
     t.skip('CMS_API_ORIGIN and CMS_ADMIN_ORIGIN are required');
     return;
   }
 
   const session = await adminSession();
+  const stamp = Date.now();
+  const archiveId = `persist-work-${stamp}`;
+
+  const created = await raw(`${apiOrigin}/content-manager/collection-types/api::work.work`, {
+    method: 'POST',
+    headers: adminHeaders(session, { 'content-type': 'application/json' }),
+    body: JSON.stringify({
+      title: `Persist Work ${stamp}`,
+      summary: 'Survives API recreate',
+      archiveId,
+    }),
+  });
+  assert.ok(created.status === 200 || created.status === 201, created.text);
+  const documentId = created.json?.data?.documentId;
+  assert.ok(documentId);
+
   const form = new FormData();
   form.append(
     'files',
     new Blob([TINY_PNG], { type: 'image/png' }),
-    `persist-${Date.now()}.png`
+    `persist-${stamp}.png`
   );
   const uploaded = await raw(`${apiOrigin}/upload`, {
     method: 'POST',
@@ -295,8 +311,19 @@ test('Media Item preview remains available after API process restart', async (t)
   });
   assert.ok(uploaded.status === 200 || uploaded.status === 201, uploaded.text);
   const file = uploadedFile(uploaded.json);
+  assert.ok(file?.id, uploaded.text);
   assert.ok(file?.url);
   const previewUrl = new URL(file.url, apiOrigin).href;
+
+  const linked = await raw(
+    `${apiOrigin}/content-manager/collection-types/api::work.work/${documentId}`,
+    {
+      method: 'PUT',
+      headers: adminHeaders(session, { 'content-type': 'application/json' }),
+      body: JSON.stringify({ mediaItems: [file.id] }),
+    }
+  );
+  assert.equal(linked.status, 200, linked.text);
 
   let restart;
   try {
@@ -310,6 +337,23 @@ test('Media Item preview remains available after API process restart', async (t)
     return;
   }
 
-  const afterRestart = await raw(previewUrl);
-  assert.equal(afterRestart.status, 200, afterRestart.text);
+  const afterPreview = await raw(previewUrl);
+  assert.equal(afterPreview.status, 200, afterPreview.text);
+
+  const afterWork = await raw(
+    `${apiOrigin}/content-manager/collection-types/api::work.work/${documentId}`,
+    { headers: adminHeaders(session) }
+  );
+  assert.equal(afterWork.status, 200, afterWork.text);
+  assert.equal(afterWork.json?.data?.archiveId, archiveId);
+  const media = afterWork.json?.data?.mediaItems || [];
+  const mediaIds = (Array.isArray(media) ? media : [media])
+    .filter(Boolean)
+    .map((item) => item.id || item);
+  assert.ok(mediaIds.includes(file.id), JSON.stringify(afterWork.json?.data?.mediaItems));
+
+  const afterFile = await raw(`${apiOrigin}/upload/files/${file.id}`, {
+    headers: adminHeaders(session),
+  });
+  assert.equal(afterFile.status, 200, afterFile.text);
 });
