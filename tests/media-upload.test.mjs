@@ -329,10 +329,16 @@ test('Work, Media Item, WorkMedia Relationship, and preview survive API process 
   try {
     restart = await raw(`${controlOrigin}/restart`, { method: 'POST' });
   } catch (err) {
+    if (process.env.CMS_CONTROL_ORIGIN) {
+      assert.fail(`API recreate control plane required for acceptance: ${err}`);
+    }
     t.skip(`baseline control plane unavailable: ${err}`);
     return;
   }
   if (restart.status !== 200) {
+    if (process.env.CMS_CONTROL_ORIGIN) {
+      assert.fail(`API recreate control returned ${restart.status}: ${restart.text}`);
+    }
     t.skip(`API restart control returned ${restart.status}`);
     return;
   }
