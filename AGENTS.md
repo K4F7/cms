@@ -11,3 +11,7 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 ### Domain docs
 
 Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Push flow
+
+Done issue → open PR → `gh pr merge --auto --squash`. `main` waits for `baseline` CI. See `docs/agents/push-flow.md`.

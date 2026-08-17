@@ -180,7 +180,12 @@ test('Archive Administrator can sign in from the real Admin origin and stay sign
     executablePath,
     headless: true,
     acceptInsecureCerts: true,
-    args: ['--ignore-certificate-errors', '--allow-insecure-localhost'],
+    args: [
+      '--ignore-certificate-errors',
+      '--allow-insecure-localhost',
+      // GitHub Actions / modern Ubuntu runners disable the user-ns sandbox.
+      ...(process.env.CI ? ['--no-sandbox', '--disable-setuid-sandbox'] : []),
+    ],
   });
 
   try {
