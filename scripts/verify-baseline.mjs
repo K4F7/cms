@@ -1,10 +1,10 @@
 /**
- * Start the production-shaped local stack, then run the public health and
- * Admin→API login checks. Used by `npm run test:baseline`.
+ * Start the production-shaped local stack, then run health, Admin→API login,
+ * Work authoring, and Archive Read Contract checks. Used by `npm run test:baseline`.
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
-import { ADMIN, APP_VERSION, ORIGINS, root, waitForUrl } from './lib.mjs';
+import { ADMIN, APP_VERSION, ARCHIVE_READ_TOKEN, ORIGINS, root, waitForUrl } from './lib.mjs';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -27,7 +27,15 @@ try {
 
   const tests = spawn(
     process.execPath,
-    ['--test', '--test-timeout=180000', 'tests/health.test.mjs', 'tests/login.test.mjs', 'tests/vercel-boundary.test.mjs'],
+    [
+      '--test',
+      '--test-timeout=180000',
+      'tests/health.test.mjs',
+      'tests/login.test.mjs',
+      'tests/vercel-boundary.test.mjs',
+      'tests/work-contract.test.mjs',
+      'tests/work-authoring.test.mjs',
+    ],
     {
       cwd: root,
       stdio: 'inherit',
@@ -40,6 +48,7 @@ try {
         APP_VERSION,
         ARCHIVE_ADMIN_EMAIL: ADMIN.email,
         ARCHIVE_ADMIN_PASSWORD: ADMIN.password,
+        ARCHIVE_READ_TOKEN,
       },
     }
   );

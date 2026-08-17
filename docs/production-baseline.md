@@ -51,6 +51,8 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 
+Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/archive/v1/works/:archiveId`；不要提交生产值。
+
 ## 验证
 
 在已部署的 HTTPS origin 上：
@@ -61,6 +63,7 @@ $env:CMS_ADMIN_ORIGIN="https://admin.example.com"
 $env:APP_VERSION="<git-sha>"
 $env:ARCHIVE_ADMIN_EMAIL="<archive-administrator-email>"
 $env:ARCHIVE_ADMIN_PASSWORD="<from GitHub Environment production>"
+$env:ARCHIVE_READ_TOKEN="<archive-read-machine-credential>"
 $env:CMS_REQUIRE_BROWSER_SESSION="1"
 npm test
 ```
@@ -81,3 +84,5 @@ npm run test:baseline
 - 刷新 cookie 为 `SameSite=None; Secure; HttpOnly`，`POST /admin/access-token` 能换新 access token。
 - 失效会话返回 401/403 与明确错误。
 - 真实浏览器登录后刷新页面仍保持会话。自签证书不能证明生产证书下的 cookie 存储；生产必须用受信任证书再验一次。
+- Archive Administrator 可在 Admin 中创建、重新打开、修改并发布 Work；缺必填字段时发布给出校验反馈且不进入已发布读取。
+- 带 `ARCHIVE_READ_TOKEN` 的 `GET /api/archive/v1/works/:archiveId` 只返回已发布 Work 的 `{ data: { archiveId, title, summary } }`；草稿与未授权请求不可读。

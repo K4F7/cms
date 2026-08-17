@@ -14,7 +14,7 @@ import {
   APP_VERSION,
   ORIGINS,
   PORTS,
-  ensureAdminBuild,
+  ensureProductionBuild,
   ensureCerts,
   findAdminIndex,
   root,
@@ -23,7 +23,7 @@ import {
 } from './lib.mjs';
 
 writeTestEnv();
-ensureAdminBuild();
+ensureProductionBuild();
 const tls = ensureCerts();
 
 const adminIndex = findAdminIndex();

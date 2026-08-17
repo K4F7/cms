@@ -23,6 +23,10 @@ export const ADMIN = {
   password: process.env.ARCHIVE_ADMIN_PASSWORD || 'ArchiveAdmin!baseline1',
 };
 
+/** Dedicated machine credential for the unbound Archive Read Contract seam. */
+export const ARCHIVE_READ_TOKEN =
+  process.env.ARCHIVE_READ_TOKEN || 'archive-read-contract-baseline-token';
+
 export const APP_VERSION = process.env.APP_VERSION || 'baseline-test';
 
 export const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -52,6 +56,7 @@ export function writeTestEnv() {
     APP_VERSION,
     ARCHIVE_ADMIN_EMAIL: ADMIN.email,
     ARCHIVE_ADMIN_PASSWORD: ADMIN.password,
+    ARCHIVE_READ_TOKEN,
     DATABASE_CLIENT: 'sqlite',
     DATABASE_FILENAME: '.tmp/baseline.db',
   };
@@ -73,9 +78,19 @@ export function findAdminIndex() {
   return candidates.find((path) => existsSync(path)) ?? null;
 }
 
-export function ensureAdminBuild() {
-  if (findAdminIndex()) return;
-  console.log('building Admin with STRAPI_ADMIN_BACKEND_URL=%s', ORIGINS.api);
+export function ensureProductionBuild() {
+  const distWorkSchema = join(
+    root,
+    'dist',
+    'src',
+    'api',
+    'work',
+    'content-types',
+    'work',
+    'schema.json'
+  );
+  if (findAdminIndex() && existsSync(distWorkSchema)) return;
+  console.log('building Admin+API with STRAPI_ADMIN_BACKEND_URL=%s', ORIGINS.api);
   execFileSync('npm', ['run', 'build'], {
     cwd: root,
     stdio: 'inherit',
@@ -86,6 +101,11 @@ export function ensureAdminBuild() {
     },
     shell: true,
   });
+}
+
+/** @deprecated Use ensureProductionBuild — kept as an alias for older scripts. */
+export function ensureAdminBuild() {
+  return ensureProductionBuild();
 }
 
 export function ensureCerts() {
