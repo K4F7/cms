@@ -1,0 +1,201 @@
+{
+  "recordedAt": "2026-08-17T19:52:09.774Z",
+  "topology": {
+    "adminOrigin": "https://127.0.0.1:8443",
+    "apiOrigin": "https://localhost:9443",
+    "unapprovedOrigin": "https://127.0.0.1:8844",
+    "note": "Local production-shaped stack uses self-signed TLS. Production must re-run on trusted certificates."
+  },
+  "checks": [
+    {
+      "name": "health reports version and image digest",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "statusField": "ok",
+        "version": "baseline-test",
+        "imageDigest": "sha256:baseline-acceptance"
+      }
+    },
+    {
+      "name": "CORS allows the configured Admin origin with credentials",
+      "ok": true,
+      "detail": {
+        "status": 204,
+        "allowOrigin": "https://127.0.0.1:8443",
+        "allowCredentials": "true"
+      }
+    },
+    {
+      "name": "CORS rejects an unapproved origin",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "allowOrigin": null
+      }
+    },
+    {
+      "name": "invalid credentials fail closed without a session cookie",
+      "ok": true,
+      "detail": {
+        "status": 400,
+        "cookieNames": []
+      }
+    },
+    {
+      "name": "Admin login sets a credentialed refresh cookie",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "cookies": [
+          {
+            "name": "strapi_admin_refresh",
+            "httpOnly": true,
+            "secure": true,
+            "sameSite": "none",
+            "path": "/admin"
+          },
+          {
+            "name": "strapi_admin_refresh.sig",
+            "httpOnly": true,
+            "secure": true,
+            "sameSite": "none",
+            "path": "/admin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid session returns explicit unauthenticated feedback",
+      "ok": true,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "invalid webhook signature fails closed",
+      "ok": true,
+      "detail": {
+        "statusCode": 401,
+        "reason": "signature",
+        "pull": 0
+      }
+    },
+    {
+      "name": "successful deploy reports gitSha and imageDigest after health",
+      "ok": true,
+      "detail": {
+        "status": "ok",
+        "gitSha": "acceptsha",
+        "imageDigest": "sha256:accept"
+      }
+    },
+    {
+      "name": "failed health check fails the deploy and does not prune",
+      "ok": true,
+      "detail": {
+        "statusCode": 503,
+        "status": "health_failed"
+      }
+    },
+    {
+      "name": "browser session after Admin login",
+      "ok": true,
+      "detail": {
+        "proven": false,
+        "reason": "POST /admin/login returned 200, then GET /admin/users/me and POST /admin/access-token returned 401 on self-signed TLS. Matches FINDINGS.md. Not production session proof."
+      }
+    }
+  ],
+  "browser": {
+    "note": "Self-signed TLS may skip cookie storage. Production re-run uses CMS_REQUIRE_BROWSER_SESSION=1.",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://127.0.0.1:8443/",
+        "status": 200
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/project-type",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "url": "https://localhost:9443/admin/project-type",
+        "status": 200
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/init",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "url": "https://localhost:9443/admin/init",
+        "status": 200
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/login",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "url": "https://localhost:9443/admin/login",
+        "status": 200
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/users/me",
+        "status": 204
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/users/me/permissions",
+        "status": 204
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/information",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "url": "https://localhost:9443/admin/users/me",
+        "status": 401
+      },
+      {
+        "method": "GET",
+        "url": "https://localhost:9443/admin/users/me/permissions",
+        "status": 401
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/access-token",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "url": "https://localhost:9443/admin/information",
+        "status": 401
+      },
+      {
+        "method": "POST",
+        "url": "https://localhost:9443/admin/access-token",
+        "status": 401
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/logout",
+        "status": 204
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://localhost:9443/admin/logout",
+        "status": 204
+      }
+    ]
+  },
+  "disasterRecovery": "Same-host API process or container recreation only. Not a backup, restore, or disaster-recovery promise."
+}
