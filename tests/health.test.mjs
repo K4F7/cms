@@ -25,6 +25,35 @@ test('public health reports ok and the current application version', async (t) =
   assert.equal(body.version, expectedVersion);
 });
 
+test('public health reports the image digest with the application version', async (t) => {
+  if (!apiOrigin) {
+    t.skip('CMS_API_ORIGIN is required');
+    return;
+  }
+
+  const expectedDigest = process.env.CMS_IMAGE_DIGEST;
+  assert.ok(expectedDigest, 'CMS_IMAGE_DIGEST is required for health identity');
+
+  const res = await fetch(`${apiOrigin}/health`);
+  const body = await res.json();
+
+  assert.equal(res.status, 200);
+  assert.equal(body.status, 'ok');
+  assert.equal(body.version, expectedVersion);
+  assert.equal(body.imageDigest, expectedDigest);
+});
+
+test('health response includes imageDigest when the image identity is provided', () => {
+  const result = healthResponse(true, 'fixture-sha', 'sha256:fixture-digest');
+
+  assert.equal(result.statusCode, 200);
+  assert.deepEqual(result.body, {
+    status: 'ok',
+    version: 'fixture-sha',
+    imageDigest: 'sha256:fixture-digest',
+  });
+});
+
 test('public health reports not_ready when the application cannot serve', async () => {
   const version = 'fixture-sha';
   const server = createServer((req, res) => {

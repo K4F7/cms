@@ -30,6 +30,9 @@ export const ARCHIVE_READ_TOKEN =
 
 export const APP_VERSION = process.env.APP_VERSION || 'baseline-test';
 
+/** Stand-in image identity for the production-shaped local health seam. */
+export const IMAGE_DIGEST = process.env.CMS_IMAGE_DIGEST || 'sha256:baseline-acceptance';
+
 export const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 export function secret() {
@@ -55,6 +58,7 @@ export function writeTestEnv() {
     ADMIN_RATE_LIMIT: 'false',
     STRAPI_ADMIN_BACKEND_URL: ORIGINS.api,
     APP_VERSION,
+    CMS_IMAGE_DIGEST: IMAGE_DIGEST,
     ARCHIVE_ADMIN_EMAIL: ADMIN.email,
     ARCHIVE_ADMIN_PASSWORD: ADMIN.password,
     ARCHIVE_READ_TOKEN,

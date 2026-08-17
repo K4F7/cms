@@ -61,6 +61,7 @@ Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/arc
 $env:CMS_API_ORIGIN="https://api.example.com"
 $env:CMS_ADMIN_ORIGIN="https://admin.example.com"
 $env:APP_VERSION="<git-sha>"
+$env:CMS_IMAGE_DIGEST="sha256:<digest>"
 $env:ARCHIVE_ADMIN_EMAIL="<archive-administrator-email>"
 $env:ARCHIVE_ADMIN_PASSWORD="<from GitHub Environment production>"
 $env:ARCHIVE_READ_TOKEN="<archive-read-machine-credential>"
@@ -74,9 +75,11 @@ npm test
 npm run test:baseline
 ```
 
+首版验收报告与已脱敏证据见 [acceptance.md](acceptance.md)。需要同时写出证据文件时用 `npm run test:acceptance`。
+
 检查项：
 
-- `GET /health` 在就绪时返回 `{"status":"ok","version":"<sha>"}`。
+- `GET /health` 在就绪时返回 `{"status":"ok","version":"<sha>","imageDigest":"sha256:<digest>"}`。`imageDigest` 来自运行时 `CMS_IMAGE_DIGEST`。
 - 停掉 1Panel PostgreSQL 或在 API 尚未连上数据库时，同一 `GET /health` 返回 `503` 且 `status=not_ready`，仍带 `version`。
 - 已配置 Admin origin 的 CORS 预检带精确 `Access-Control-Allow-Origin` 与 `credentials=true`。
 - 未批准 origin 没有 `Access-Control-Allow-Origin`。

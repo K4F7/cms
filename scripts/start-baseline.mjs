@@ -13,6 +13,7 @@ import { dirname, extname, join } from 'node:path';
 import {
   ADMIN,
   APP_VERSION,
+  IMAGE_DIGEST,
   ORIGINS,
   PORTS,
   ensureProductionBuild,
@@ -105,6 +106,7 @@ function startStrapi() {
       ...process.env,
       NODE_ENV: 'production',
       APP_VERSION,
+      CMS_IMAGE_DIGEST: IMAGE_DIGEST,
       STRAPI_ADMIN_BACKEND_URL: ORIGINS.api,
     },
   });
@@ -164,4 +166,4 @@ process.on('exit', () => {
 
 await waitForUrl(`${ORIGINS.strapi}/health`, 180_000);
 console.log('login  %s / %s', ADMIN.email, ADMIN.password);
-console.log('health %s/health version=%s', ORIGINS.api, APP_VERSION);
+console.log('health %s/health version=%s digest=%s', ORIGINS.api, APP_VERSION, IMAGE_DIGEST);
