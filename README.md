@@ -34,3 +34,21 @@ Relationship、Archive Administrator、Archive Read Contract。
 
 规格与决策见本仓库 Issues。Koishi 插件验证、Yakumo、以及 QQ 只读适配仍在
 [`K4F7/memebot`](https://github.com/K4F7/memebot)。
+
+## Issues
+
+| 本仓库 | 原 `memebot` | 说明 |
+| --- | --- | --- |
+| [#1](https://github.com/K4F7/cms/issues/1) | #62 | 研究：Admin / API 分离边界 |
+| [#2](https://github.com/K4F7/cms/issues/2) | #63 | VPS 运行与持久化约束 |
+| [#3](https://github.com/K4F7/cms/issues/3) | #64 | 首版拓扑决策 |
+| [#4](https://github.com/K4F7/cms/issues/4) | #65 | 仓库与 CI/CD 契约 |
+| [#5](https://github.com/K4F7/cms/issues/5) | #69 | 跨域 Admin 与本地上传原型 |
+| [#6](https://github.com/K4F7/cms/issues/6) | #75 | 首版运行链路规格 |
+| [#7](https://github.com/K4F7/cms/issues/7) | #79 | 可登录生产基线 |
+| [#8](https://github.com/K4F7/cms/issues/8) | #81 | Work 草稿、修改与发布 |
+| [#9](https://github.com/K4F7/cms/issues/9) | #82 | Media Item 上传与关联 |
+| [#10](https://github.com/K4F7/cms/issues/10) | #83 | GHCR webhook 发布 |
+| [#11](https://github.com/K4F7/cms/issues/11) | #84 | 首版生产形态验收 |
+
+留在 `memebot` 的相关票：[#61](https://github.com/K4F7/memebot/issues/61) 总地图，[#70](https://github.com/K4F7/memebot/issues/70) Koishi 只读适配，[#76](https://github.com/K4F7/memebot/issues/76) Yakumo / 插件发布。
