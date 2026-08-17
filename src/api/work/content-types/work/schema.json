@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "works",
+  "info": {
+    "singularName": "work",
+    "pluralName": "works",
+    "displayName": "Work",
+    "description": "Historical club or member work with a stable Archive Identifier."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "minLength": 1
+    },
+    "summary": {
+      "type": "text"
+    },
+    "archiveId": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "minLength": 1
+    }
+  }
+}
