@@ -1,0 +1,21 @@
+[Unit]
+Description=CMS deploy webhook (HMAC → compose pull/up + health)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cms
+EnvironmentFile=/opt/cms/deploy/.env
+Environment=CMS_WEBHOOK_HOST=127.0.0.1
+Environment=CMS_WEBHOOK_PORT=9100
+Environment=CMS_DEPLOY_ENV_PATH=/opt/cms/deploy/.env
+Environment=CMS_DEPLOY_STATE_PATH=/opt/cms/deploy/.deploy-state.json
+Environment=CMS_COMPOSE_FILE=/opt/cms/deploy/compose.yml
+Environment=CMS_HEALTH_URL=http://127.0.0.1:1337/health
+ExecStart=/usr/bin/node /opt/cms/deploy/webhook/server.mjs
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

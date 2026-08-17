@@ -131,3 +131,4 @@ build
 .strapi-cloud.json
 .vercel
 deploy/.env
+deploy/.deploy-state.json

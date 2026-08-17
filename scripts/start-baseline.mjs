@@ -1,11 +1,12 @@
 /**
- * Production-shaped local stack for K4F7/cms#7:
+ * Production-shaped local stack for K4F7/cms#7+:
  *   https://127.0.0.1:8443  prebuilt Admin (Vercel stand-in)
  *   https://localhost:9443  TLS proxy → Strapi API (OpenResty stand-in)
  *   http://127.0.0.1:1337   Strapi process (not public)
+ *   http://127.0.0.1:1901   control plane (API process restart for media persistence)
  */
 import { spawn } from 'node:child_process';
-import { request as httpRequest } from 'node:http';
+import { createServer as createHttpServer, request as httpRequest } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
@@ -93,36 +94,73 @@ createHttpsServer(tls, proxyToApi).listen(PORTS.apiHttps, 'localhost', () => {
 });
 
 const strapiBin = join(root, 'node_modules', '@strapi', 'strapi', 'bin', 'strapi.js');
-const strapiProc = spawn(process.execPath, [strapiBin, 'start'], {
-  cwd: root,
-  stdio: 'inherit',
-  env: {
-    ...process.env,
-    NODE_ENV: 'production',
-    APP_VERSION,
-    STRAPI_ADMIN_BACKEND_URL: ORIGINS.api,
-  },
-});
+/** @type {import('node:child_process').ChildProcess | null} */
+let strapiProc = null;
+
+function startStrapi() {
+  strapiProc = spawn(process.execPath, [strapiBin, 'start'], {
+    cwd: root,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      APP_VERSION,
+      STRAPI_ADMIN_BACKEND_URL: ORIGINS.api,
+    },
+  });
+
+  strapiProc.on('exit', (code) => {
+    if (stoppingStack) return;
+    if (code) process.exit(code);
+  });
+}
 
 function stopStrapi() {
-  if (strapiProc.exitCode == null) {
+  if (strapiProc && strapiProc.exitCode == null) {
     strapiProc.kill('SIGTERM');
   }
 }
 
-strapiProc.on('exit', (code) => {
-  if (code) process.exit(code);
+let stoppingStack = false;
+startStrapi();
+
+createHttpServer(async (req, res) => {
+  const path = req.url?.split('?')[0];
+  if (req.method === 'POST' && path === '/restart') {
+    stopStrapi();
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    startStrapi();
+    try {
+      await waitForUrl(`${ORIGINS.strapi}/health`, 180_000);
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok' }));
+    } catch (err) {
+      res.writeHead(503, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ status: 'not_ready', error: String(err) }));
+    }
+    return;
+  }
+
+  res.writeHead(404, { 'content-type': 'application/json' });
+  res.end(JSON.stringify({ status: 'not_found' }));
+}).listen(PORTS.control, '127.0.0.1', () => {
+  console.log('control http://127.0.0.1:%s/restart', PORTS.control);
 });
 
 process.on('SIGINT', () => {
+  stoppingStack = true;
   stopStrapi();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
+  stoppingStack = true;
   stopStrapi();
   process.exit(0);
 });
-process.on('exit', stopStrapi);
+process.on('exit', () => {
+  stoppingStack = true;
+  stopStrapi();
+});
 
 await waitForUrl(`${ORIGINS.strapi}/health`, 180_000);
 console.log('login  %s / %s', ADMIN.email, ADMIN.password);

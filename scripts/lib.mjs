@@ -9,6 +9,7 @@ export const PORTS = {
   apiHttps: 9443,
   adminHttps: 8443,
   unapprovedHttps: 8844,
+  control: 1901,
 };
 
 export const ORIGINS = {
@@ -89,7 +90,14 @@ export function ensureProductionBuild() {
     'work',
     'schema.json'
   );
-  if (findAdminIndex() && existsSync(distWorkSchema)) return;
+  if (findAdminIndex() && existsSync(distWorkSchema)) {
+    try {
+      const schema = JSON.parse(readFileSync(distWorkSchema, 'utf8'));
+      if (schema?.attributes?.mediaItems) return;
+    } catch {
+      // rebuild below
+    }
+  }
   console.log('building Admin+API with STRAPI_ADMIN_BACKEND_URL=%s', ORIGINS.api);
   execFileSync('npm', ['run', 'build'], {
     cwd: root,

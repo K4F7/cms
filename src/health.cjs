@@ -2,12 +2,17 @@ function appVersion() {
   return process.env.APP_VERSION || process.env.GIT_SHA || 'unknown';
 }
 
-function healthResponse(ready, version) {
-  if (ready) {
-    return { statusCode: 200, body: { status: 'ok', version } };
-  }
-
-  return { statusCode: 503, body: { status: 'not_ready', version } };
+function imageDigest() {
+  return process.env.CMS_IMAGE_DIGEST || process.env.IMAGE_DIGEST || null;
 }
 
-module.exports = { appVersion, healthResponse };
+function healthResponse(ready, version, digest = imageDigest()) {
+  const body = { status: ready ? 'ok' : 'not_ready', version };
+  if (digest) {
+    body.imageDigest = digest;
+  }
+
+  return { statusCode: ready ? 200 : 503, body };
+}
+
+module.exports = { appVersion, healthResponse, imageDigest };

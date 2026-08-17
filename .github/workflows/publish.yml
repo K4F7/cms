@@ -1,0 +1,86 @@
+name: publish
+
+# Daily main push deploys Admin (Vercel Git Integration) and the API image.
+# K4F7/cms#10 — build ghcr.io/k4f7/cms:<git-sha>, HMAC webhook to louis.
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - run: npm run test:baseline
+        env:
+          CI: true
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+      - run: node --test --test-timeout=60000 tests/deploy-webhook.test.mjs
+
+  publish-api:
+    needs: baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image identity
+        id: meta
+        run: |
+          sha="${GITHUB_SHA}"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/k4f7/cms:${sha}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.image }}
+          labels: |
+            org.opencontainers.image.revision=${{ steps.meta.outputs.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Deploy via HMAC webhook
+        env:
+          CMS_DEPLOY_WEBHOOK_URL: ${{ secrets.CMS_DEPLOY_WEBHOOK_URL }}
+          CMS_DEPLOY_WEBHOOK_SECRET: ${{ secrets.CMS_DEPLOY_WEBHOOK_SECRET }}
+          CMS_GIT_SHA: ${{ steps.meta.outputs.sha }}
+          CMS_IMAGE_REF: ${{ steps.meta.outputs.image }}
+          CMS_IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          CMS_RUNTIME_ENV_JSON: ${{ secrets.CMS_RUNTIME_ENV_JSON }}
+        run: node scripts/call-deploy-webhook.mjs deploy

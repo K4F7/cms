@@ -1,6 +1,7 @@
 # Strapi API on louis. PostgreSQL stays on the existing 1Panel instance.
 # Host networking is required because that Postgres listens on loopback only.
-# Webhook publish/rebuild is K4F7/cms#10.
+# The deploy webhook (K4F7/cms#10) runs as a host Node process — see
+# deploy/webhook/cms-deploy-webhook.service — and is not part of this Compose file.
 
 services:
   api:

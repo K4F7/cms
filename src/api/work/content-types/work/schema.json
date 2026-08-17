@@ -5,7 +5,7 @@
     "singularName": "work",
     "pluralName": "works",
     "displayName": "Work",
-    "description": "Historical club or member work with a stable Archive Identifier."
+    "description": "Historical club or member work with a stable Archive Identifier. Media Items attach through the WorkMedia Relationship field mediaItems."
   },
   "options": {
     "draftAndPublish": true
@@ -24,6 +24,12 @@
       "required": true,
       "unique": true,
       "minLength": 1
+    },
+    "mediaItems": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images", "files"]
     }
   }
 }

@@ -4,7 +4,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
-import { ADMIN, APP_VERSION, ARCHIVE_READ_TOKEN, ORIGINS, root, waitForUrl } from './lib.mjs';
+import { ADMIN, APP_VERSION, ARCHIVE_READ_TOKEN, ORIGINS, PORTS, root, waitForUrl } from './lib.mjs';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -29,12 +29,15 @@ try {
     process.execPath,
     [
       '--test',
+      '--test-concurrency=1',
       '--test-timeout=180000',
       'tests/health.test.mjs',
       'tests/login.test.mjs',
       'tests/vercel-boundary.test.mjs',
       'tests/work-contract.test.mjs',
       'tests/work-authoring.test.mjs',
+      'tests/media-upload.test.mjs',
+      'tests/deploy-webhook.test.mjs',
     ],
     {
       cwd: root,
@@ -45,6 +48,7 @@ try {
         CMS_API_ORIGIN: ORIGINS.api,
         CMS_ADMIN_ORIGIN: ORIGINS.admin,
         CMS_UNAPPROVED_ORIGIN: ORIGINS.unapproved,
+        CMS_CONTROL_ORIGIN: `http://127.0.0.1:${PORTS.control}`,
         APP_VERSION,
         ARCHIVE_ADMIN_EMAIL: ADMIN.email,
         ARCHIVE_ADMIN_PASSWORD: ADMIN.password,
