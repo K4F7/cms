@@ -1,0 +1,19 @@
+# Strapi API on louis. PostgreSQL stays on the existing 1Panel instance.
+# Host networking is required because that Postgres listens on loopback only.
+# Webhook publish/rebuild is K4F7/cms#10.
+
+services:
+  api:
+    image: ghcr.io/k4f7/cms:${CMS_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    network_mode: host
+    env_file: .env
+    environment:
+      HOST: ${HOST:-127.0.0.1}
+      PORT: ${PORT:-1337}
+      SERVE_ADMIN_PANEL: "false"
+    volumes:
+      - ${CMS_MEDIA_PATH:-/opt/cms/media}:/opt/app/public/uploads
+    restart: unless-stopped
