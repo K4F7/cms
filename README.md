@@ -21,6 +21,15 @@ VPS louis: OpenResty → Strapi API / 认证 / 本地上传
 构建 `ghcr.io/k4f7/cms:<git-sha>`，再通过带时间戳的 HMAC webhook 让 VPS
 拉取镜像并重建容器。健康检查通过后才算发布成功。
 
+## 本地基线
+
+```powershell
+npm install
+npm run test:baseline
+```
+
+这会拉起生产形态的分离 origin（预构建 Admin + TLS 代理 API），并检查公开健康检查与 Admin→API 登录。生产配置与验证步骤见 [docs/production-baseline.md](docs/production-baseline.md)。
+
 ## 边界
 
 - 单应用树：标准 Strapi 5 根目录（`config/`、`src/`）加 `deploy/compose.yml`。

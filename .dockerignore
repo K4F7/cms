@@ -1,0 +1,14 @@
+.git
+.github
+.tmp
+.env
+.vercel
+.strapi
+dist
+build
+node_modules
+prototype
+docs
+tests
+*.md
+deploy/.env
