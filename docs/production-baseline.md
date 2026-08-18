@@ -51,7 +51,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 
-Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/archive/v1/works/:archiveId`；不要提交生产值。
+Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/archive/v1/works`、`GET /api/archive/v1/works/:archiveId` 与 `GET /api/archive/v1/media/:mediaId`；不要提交生产值。
 
 ## 验证
 
@@ -88,7 +88,7 @@ npm run test:baseline
 - 失效会话返回 401/403 与明确错误。
 - 真实浏览器登录后刷新页面仍保持会话。自签证书不能证明生产证书下的 cookie 存储；生产必须用受信任证书再验一次。
 - Archive Administrator 可在 Admin 中创建、重新打开、修改并发布 Work；缺必填字段时发布给出校验反馈且不进入已发布读取。
-- 带 `ARCHIVE_READ_TOKEN` 的 `GET /api/archive/v1/works/:archiveId` 只返回已发布 Work 的 `{ data: { archiveId, title, summary } }`；草稿与未授权请求不可读。
+- 带 `ARCHIVE_READ_TOKEN` 的 Archive Read Contract：`GET /api/archive/v1/works` 搜索已发布且媒体清单非空的 Work，返回 `{ data, total }`（`data` 上限 1000）；`GET /api/archive/v1/works/:archiveId` 返回 `{ data: { archiveId, title, summary, author, media } }`（空清单 404）；`GET /api/archive/v1/media/:mediaId` 仅当该媒体出现在可读已发布 Work 清单中时返回文件字节。草稿与未授权请求不可读。
 - Archive Administrator 可上传受支持的图片或 PDF（产品上限 50 MiB），在 Admin / 预览 URL 中查看 Media Item，并通过 Work 的 `mediaItems`（WorkMedia Relationship）关联；超限上传失败且不留下 Media Item。
 - 媒体落在宿主机 `CMS_MEDIA_PATH` bind mount；本地基线通过 control `POST /restart` 验证 API 进程重建后预览仍可用。
 

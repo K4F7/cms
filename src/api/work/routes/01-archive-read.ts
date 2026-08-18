@@ -9,8 +9,28 @@ const routes: Core.RouterInput = {
   routes: [
     {
       method: 'GET',
+      path: '/archive/v1/works',
+      handler: 'api::work.work.searchPublished',
+      config: {
+        auth: false,
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
       path: '/archive/v1/works/:archiveId',
       handler: 'api::work.work.findPublishedByArchiveId',
+      config: {
+        auth: false,
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/archive/v1/media/:mediaId',
+      handler: 'api::work.work.downloadPublishedMedia',
       config: {
         auth: false,
         policies: [],
