@@ -6,6 +6,7 @@
  * cookies in Chromium. Tests seed the Admin SPA access token via localStorage
  * (Strapi's "remember me" path) after a real Admin login API call, then drive
  * Content Manager in the browser.
+ * Browser tests pin strapi-admin-language=en so English chrome selectors stay stable.
  */
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
@@ -69,6 +70,7 @@ async function openAuthoringPage(browser) {
   await page.evaluateOnNewDocument((access) => {
     window.localStorage.setItem('jwtToken', JSON.stringify(access));
     window.localStorage.setItem('isLoggedIn', 'true');
+    window.localStorage.setItem('strapi-admin-language', 'en');
   }, token);
 
   await page.setRequestInterception(true);
