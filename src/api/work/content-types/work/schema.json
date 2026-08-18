@@ -19,6 +19,9 @@
     "summary": {
       "type": "text"
     },
+    "author": {
+      "type": "string"
+    },
     "archiveId": {
       "type": "string",
       "required": true,
@@ -29,7 +32,10 @@
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images", "files"]
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
     }
   }
 }

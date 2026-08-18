@@ -97,7 +97,7 @@ export function ensureProductionBuild() {
   if (findAdminIndex() && existsSync(distWorkSchema)) {
     try {
       const schema = JSON.parse(readFileSync(distWorkSchema, 'utf8'));
-      if (schema?.attributes?.mediaItems) return;
+      if (schema?.attributes?.mediaItems && schema?.attributes?.author) return;
     } catch {
       // rebuild below
     }

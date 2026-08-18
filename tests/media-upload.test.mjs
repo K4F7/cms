@@ -371,7 +371,14 @@ test('published Work, WorkMedia Relationship, and media preview survive API proc
     { headers: { Authorization: `Bearer ${archiveReadToken}` } }
   );
   assert.equal(archiveRead.status, 200, archiveRead.text);
-  assert.deepEqual(archiveRead.json, {
-    data: { archiveId, title, summary },
-  });
+  assert.equal(archiveRead.json?.data?.archiveId, archiveId);
+  assert.equal(archiveRead.json?.data?.title, title);
+  assert.equal(archiveRead.json?.data?.summary, summary);
+  assert.equal(archiveRead.json?.data?.author ?? null, null);
+  assert.ok(Array.isArray(archiveRead.json?.data?.media));
+  assert.equal(archiveRead.json.data.media.length, 1);
+  assert.equal(archiveRead.json.data.media[0].filename, `persist-${stamp}.png`);
+  assert.equal(archiveRead.json.data.media[0].mediaType, 'image/png');
+  assert.equal(typeof archiveRead.json.data.media[0].size, 'number');
+  assert.ok(archiveRead.json.data.media[0].size > 0);
 });
