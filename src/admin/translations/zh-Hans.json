@@ -21,5 +21,9 @@
   "content-manager.content-types.api::work.work.summary": "摘要",
   "content-manager.content-types.api::work.work.author": "作者",
   "content-manager.content-types.api::work.work.archiveId": "档案标识",
-  "content-manager.content-types.api::work.work.mediaItems": "媒体项"
+  "content-manager.content-types.api::work.work.mediaItems": "媒体项",
+  "Auth.form.welcome.title": "meme",
+  "Auth.form.welcome.subtitle": "登录迷因创作社",
+  "app.components.LeftMenu.navbrand.title": "meme",
+  "app.components.LeftMenu.navbrand.workplace": "迷因创作社"
 }
