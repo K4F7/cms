@@ -7,7 +7,7 @@
 ```text
 Vercel HTTPS Admin origin
         |
-        | credentialed CORS, cookie path=/admin
+        | credentialed CORS, cookie path=/ (Admin mount, not hardcoded /admin)
         v
 OpenResty on louis  →  Strapi API :1337
 1Panel PostgreSQL（独立 database / user，只听 loopback）
