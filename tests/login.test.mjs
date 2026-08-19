@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { test } from 'node:test';
 import puppeteer from 'puppeteer-core';
+import { cookieFlags } from '../scripts/acceptance-evidence.mjs';
 import { ADMIN, chromePath } from '../scripts/lib.mjs';
+import { adminCookiePath } from '../src/admin-paths.js';
 
 const apiOrigin = process.env.CMS_API_ORIGIN;
 const adminOrigin = process.env.CMS_ADMIN_ORIGIN;
@@ -115,6 +117,9 @@ test('Admin origin login sets a credentialed session and refresh cookie', async 
   assert.match(cookieAttrs, /samesite=none/i);
   assert.match(cookieAttrs, /secure/i);
   assert.match(cookieAttrs, /httponly/i);
+  const refreshCookie = cookieFlags(login.setCookie).find((cookie) => cookie.name === 'strapi_admin_refresh');
+  assert.ok(refreshCookie);
+  assert.equal(refreshCookie.path, adminCookiePath('/'));
 
   const me = await raw(`${apiOrigin}/admin/users/me`, {
     headers: {

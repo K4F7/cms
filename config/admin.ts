@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { adminCookiePath } from '../src/admin-paths';
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => ({
   url: env('ADMIN_URL', '/'),
@@ -7,7 +8,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => 
     secret: env('ADMIN_JWT_SECRET')!,
     cookie: {
       sameSite: env('ADMIN_COOKIE_SAMESITE', 'none') as 'lax' | 'strict' | 'none',
-      path: '/admin',
+      path: adminCookiePath(env('ADMIN_URL', '/')),
     },
     sessions: {
       accessTokenLifespan: env.int('ADMIN_ACCESS_TOKEN_LIFESPAN', 1800),
