@@ -3,6 +3,7 @@
  * Used by GitHub Actions (K4F7/cms#10). Does not print the request body.
  */
 import { signDeployRequest } from '../deploy/webhook/contract.mjs';
+import { mergeRuntimeEnv } from './runtime-env.mjs';
 
 const url = process.env.CMS_DEPLOY_WEBHOOK_URL;
 const secret = process.env.CMS_DEPLOY_WEBHOOK_SECRET;
@@ -16,18 +17,20 @@ const action = process.argv[2] || 'deploy';
 const gitSha = process.env.CMS_GIT_SHA || process.env.GITHUB_SHA;
 const image = process.env.CMS_IMAGE_REF;
 const digest = process.env.CMS_IMAGE_DIGEST;
+const runtimeEnv = mergeRuntimeEnv(process.env.CMS_RUNTIME_ENV_JSON, {
+  ADMIN_ORIGIN: process.env.ADMIN_ORIGIN,
+  PUBLIC_URL: process.env.PUBLIC_URL,
+});
 
 const payload =
   action === 'redeploy-previous'
-    ? { action: 'redeploy-previous' }
+    ? { action: 'redeploy-previous', runtimeEnv }
     : {
         action: 'deploy',
         gitSha,
         image,
         digest,
-        runtimeEnv: process.env.CMS_RUNTIME_ENV_JSON
-          ? JSON.parse(process.env.CMS_RUNTIME_ENV_JSON)
-          : undefined,
+        runtimeEnv,
       };
 
 if (action === 'deploy' && (!gitSha || !image || !digest)) {

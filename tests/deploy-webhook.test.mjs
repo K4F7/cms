@@ -206,6 +206,34 @@ test('successful deploy pulls the requested image and reports sha plus digest', 
   assert.equal(state.previous, null);
 });
 
+test('successful deploy upserts caller runtimeEnv including ADMIN_ORIGIN', async () => {
+  const { calls, deps } = fakeDeps();
+  const payload = {
+    action: 'deploy',
+    gitSha: 'abc1234',
+    image: 'ghcr.io/k4f7/cms:abc1234',
+    digest: 'sha256:digest-abc',
+    runtimeEnv: {
+      ADMIN_ORIGIN: 'https://meme.sein.moe',
+      PUBLIC_URL: 'https://cms.sein.moe',
+    },
+  };
+  const rawBody = JSON.stringify(payload);
+
+  const result = await handleDeployRequest({
+    rawBody,
+    headers: signedHeaders(rawBody),
+    deps,
+  });
+
+  assert.equal(result.statusCode, 200);
+  assert.equal(calls.writeEnv.length, 1);
+  assert.equal(calls.writeEnv[0].ADMIN_ORIGIN, 'https://meme.sein.moe');
+  assert.equal(calls.writeEnv[0].PUBLIC_URL, 'https://cms.sein.moe');
+  assert.equal(calls.writeEnv[0].APP_VERSION, 'abc1234');
+  assert.equal(calls.writeEnv[0].CMS_IMAGE_TAG, 'abc1234');
+});
+
 test('failed health check fails the deploy and does not prune diagnostic images', async () => {
   const { calls, state, deps } = fakeDeps({
     healthResult: async () => ({ ok: false, version: 'missing', imageDigest: null }),
