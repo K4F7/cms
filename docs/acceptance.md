@@ -31,8 +31,8 @@ Admin 与 API 来自同一提交。Vercel 只发布 `dist/build`；不运行 API
 生产再跑同一组 seam 时，把 origin 换成稳定 HTTPS：
 
 ```powershell
-$env:CMS_API_ORIGIN="https://api.example.com"
-$env:CMS_ADMIN_ORIGIN="https://admin.example.com"
+$env:CMS_API_ORIGIN="https://cms.sein.moe"
+$env:CMS_ADMIN_ORIGIN="https://meme.sein.moe"
 $env:APP_VERSION="<git-sha>"
 $env:CMS_IMAGE_DIGEST="sha256:<digest>"
 $env:ARCHIVE_ADMIN_EMAIL="<archive-administrator-email>"

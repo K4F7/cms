@@ -5,13 +5,15 @@
 ## 拓扑
 
 ```text
-Vercel HTTPS Admin origin
+https://meme.sein.moe     Vercel HTTPS Admin
         |
         | credentialed CORS, cookie path=/ (Admin mount, not hardcoded /admin)
         v
-OpenResty on louis  →  Strapi API :1337
-1Panel PostgreSQL（独立 database / user，只听 loopback）
+https://cms.sein.moe      OpenResty on louis → Strapi API :1337
+                          1Panel PostgreSQL（独立 database / user，只听 loopback）
 ```
+
+`meme.sein.moe` 是 Archive Administrator 打开的录入后台，不是 API。不要把它指回 louis 上的旧 Payload 反代（`127.0.0.1:13000`）。API 只使用 `cms.sein.moe`。
 
 Admin 与 API 来自同一提交。Vercel 只发布 `dist/build` 静态资源；不运行 API、不连接数据库、不保存媒体。
 
@@ -36,8 +38,11 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 1. 将本仓库连到 Vercel 项目，Framework Preset 留空，Output Directory 为 `dist/build`。
 2. 只配置公开构建变量 `STRAPI_ADMIN_BACKEND_URL`（API 的稳定 HTTPS origin）。
 3. 不要配置 `DATABASE_*`。`npm run build:admin` 在这些变量存在时会失败。
-4. 给 Admin 一个稳定 HTTPS 自定义域名，写入 API 的 `ADMIN_ORIGIN`。
-5. API origin 变化后必须重新构建 Admin。
+4. Admin 自定义域名是 `meme.sein.moe`。在 Vercel 项目里绑定该域名，Cloudflare DNS 用 **DNS only** CNAME 指向 `cname.vercel-dns.com`。不要把该记录指回 louis。
+5. GitHub Environment `production` 的 `ADMIN_ORIGIN` 必须是 `https://meme.sein.moe`（无尾斜杠）。每次 `main` 发布会把它 upsert 进 louis `deploy/.env`。
+6. API origin 变化后必须重新构建 Admin。`STRAPI_ADMIN_BACKEND_URL` 已是 `https://cms.sein.moe`。
+
+首次把旧 Payload 入口改接到 Strapi Admin 时，按顺序做：Vercel 加域名 → Cloudflare 改 CNAME → 1Panel 停掉 `meme.sein.moe` 指向 `:13000` 的站点/容器 → 重建 API 容器。交互步骤见 `scripts/attach-meme-admin.sh`。
 
 ## louis 上的 API
 
@@ -58,8 +63,8 @@ Archive Read Contract 机器凭证：`ARCHIVE_READ_TOKEN`。用于 `GET /api/arc
 在已部署的 HTTPS origin 上：
 
 ```powershell
-$env:CMS_API_ORIGIN="https://api.example.com"
-$env:CMS_ADMIN_ORIGIN="https://admin.example.com"
+$env:CMS_API_ORIGIN="https://cms.sein.moe"
+$env:CMS_ADMIN_ORIGIN="https://meme.sein.moe"
 $env:APP_VERSION="<git-sha>"
 $env:CMS_IMAGE_DIGEST="sha256:<digest>"
 $env:ARCHIVE_ADMIN_EMAIL="<archive-administrator-email>"
@@ -97,8 +102,9 @@ npm run test:baseline
 1. 在 louis 上安装 OpenResty 站点（含独立 `location = /deploy`），访问日志使用不含 body 的格式。
 2. 安装并启用 `deploy/webhook/cms-deploy-webhook.service`（监听 `127.0.0.1:9100`）。
 3. 在 GitHub Environment `production` 配置：
-   - `CMS_DEPLOY_WEBHOOK_URL`（例如 `https://api.example.com/deploy`）
+   - `CMS_DEPLOY_WEBHOOK_URL`（`https://cms.sein.moe/deploy`）
    - `CMS_DEPLOY_WEBHOOK_SECRET`
+   - 变量 `ADMIN_ORIGIN=https://meme.sein.moe` 与 `PUBLIC_URL=https://cms.sein.moe`（公开，随 webhook upsert 进 `deploy/.env`）
    - 可选 `CMS_RUNTIME_ENV_JSON`（写入 VPS `deploy/.env` 的运行时密钥 JSON）
 4. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`，再 HMAC 调用 webhook。
 5. 成功响应含 `gitSha` 与 `imageDigest`；健康失败不剪枝。回滚：对同一 webhook 发送 `{ "action": "redeploy-previous" }`。

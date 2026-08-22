@@ -83,4 +83,6 @@ jobs:
           CMS_IMAGE_REF: ${{ steps.meta.outputs.image }}
           CMS_IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
           CMS_RUNTIME_ENV_JSON: ${{ secrets.CMS_RUNTIME_ENV_JSON }}
+          ADMIN_ORIGIN: ${{ vars.ADMIN_ORIGIN }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
         run: node scripts/call-deploy-webhook.mjs deploy

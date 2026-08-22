@@ -8,13 +8,13 @@ Koishi 主线 `K4F7/memebot` 只保留 QQ 读取插件；Archive Read Contract �
 ## 首版拓扑
 
 ```text
-Vercel: 预构建 Strapi Admin
+https://meme.sein.moe   Vercel: 预构建 Strapi Admin
               |
               | HTTPS + credentialed CORS
               v
-VPS louis: OpenResty → Strapi API / 认证 / 本地上传
-           现有 1Panel PostgreSQL（独立 database 与 user）
-           宿主机媒体 bind mount
+https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上传
+                        现有 1Panel PostgreSQL（独立 database 与 user）
+                        宿主机媒体 bind mount
 ```
 
 每次 `main` 推送两端都发：Vercel Git Integration 发布 Admin；GitHub Actions
