@@ -209,6 +209,11 @@ test('Archive Administrator can sign in from the real Admin origin and stay sign
 
     await page.goto(adminOrigin, { waitUntil: 'domcontentloaded', timeout: 60_000 });
     await page.waitForSelector('input[name="email"], input[type="email"]', { timeout: 60_000 });
+    const loginChrome = await page.evaluate(() => document.body?.innerText || '');
+    assert.ok(
+      loginChrome.includes('登录') && loginChrome.includes('迷因创作社'),
+      'login chrome must be Simplified Chinese'
+    );
     const email = (await page.$('input[name="email"]')) || (await page.$('input[type="email"]'));
     const password = (await page.$('input[name="password"]')) || (await page.$('input[type="password"]'));
     await email.click({ clickCount: 3 });

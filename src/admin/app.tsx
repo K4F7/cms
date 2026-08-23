@@ -1,10 +1,15 @@
 import type { StrapiApp } from '@strapi/strapi/admin';
-import zhHans from './translations/zh-Hans.json';
+import adminGapsZhHans from './translations/admin-gaps.zh-Hans.json';
+import contentManagerZhHans from './translations/content-manager.zh-Hans.json';
+import uploadGapsZhHans from './translations/upload-gaps.zh-Hans.json';
+import zhHansDomain from './translations/zh-Hans.json';
 import favicon from './extensions/favicon.png';
 import loginLogo from './extensions/login-logo.png';
 
 /** Sampled from the processed MEME. wordmark (dark emerald, not the bright cyan fringe). */
 const BRAND = '#2c8874';
+const ADMIN_LOCALE = 'zh-Hans';
+const ADMIN_LANGUAGE_KEY = 'strapi-admin-language';
 
 const brandColors = {
   primary100: '#e8f6f2',
@@ -32,6 +37,31 @@ const englishChrome = {
   'app.components.LeftMenu.navbrand.title': 'meme',
   'app.components.LeftMenu.navbrand.workplace': '迷因创作社',
 };
+
+function prefixPluginTranslations(
+  messages: Record<string, string>,
+  pluginId: string
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(messages).map(([key, value]) => [`${pluginId}.${key}`, value])
+  );
+}
+
+const zhHans = {
+  ...adminGapsZhHans,
+  ...prefixPluginTranslations(contentManagerZhHans, 'content-manager'),
+  ...prefixPluginTranslations(uploadGapsZhHans, 'upload'),
+  ...zhHansDomain,
+};
+
+function pinAdminLocale(): void {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+  localStorage.setItem(ADMIN_LANGUAGE_KEY, ADMIN_LOCALE);
+}
+
+pinAdminLocale();
 
 function keepPluginMenuLink(to: string): boolean {
   const path = to.replace(/^\//, '');
@@ -63,9 +93,9 @@ function hideHomeAndMarketplace(): void {
 
 export default {
   config: {
-    locales: ['zh-Hans'],
+    locales: [ADMIN_LOCALE],
     translations: {
-      'zh-Hans': zhHans,
+      [ADMIN_LOCALE]: zhHans,
       en: englishChrome,
     },
     auth: { logo: loginLogo },
@@ -89,12 +119,6 @@ export default {
   bootstrap(_app: StrapiApp) {
     hideHomeAndMarketplace();
 
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
-
-    if (localStorage.getItem('strapi-admin-language') === null) {
-      localStorage.setItem('strapi-admin-language', 'zh-Hans');
-    }
+    pinAdminLocale();
   },
 };
