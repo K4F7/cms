@@ -48,9 +48,11 @@ test('login chrome hides language and preview, keeps forgot-password and homepag
   assert.match(appSource, /aria-label="选择界面语言"/);
   assert.match(appSource, /docs\.strapi\.io/);
   assert.match(appSource, /plugin::users-permissions/);
-  assert.equal(appSource.includes('forgot-password'), false);
+  assert.equal(/a\[href="\/auth\/forgot-password"\][^{]*\{\s*display:\s*none/.test(appSource), false);
   assert.equal(appSource.includes("window.location.replace"), false);
   assert.equal(appSource.includes('aria-label="首页"'), false);
   assert.match(appSource, /Invalid credentials/);
   assert.match(appSource, /watchArchiveIdAutofill/);
+  assert.match(appSource, /#strapi:has\(a\[href="\/auth\/forgot-password"\]\) main/);
+  assert.match(appSource, /min-height: 100vh/);
 });
