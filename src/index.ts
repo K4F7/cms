@@ -1,4 +1,9 @@
 import type { Core } from '@strapi/strapi';
+import {
+  hideFromContentManager,
+  USERS_PERMISSIONS_CONTENT_TYPES,
+} from './admin-chrome';
+import { applyAuthoringLayouts } from './authoring-layouts';
 import { appVersion, healthResponse, imageDigest } from './health.cjs';
 
 let applicationReady = false;
@@ -38,6 +43,10 @@ async function seedArchiveAdministrator(strapi: Core.Strapi): Promise<void> {
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
+    for (const uid of USERS_PERMISSIONS_CONTENT_TYPES) {
+      hideFromContentManager(strapi.contentType(uid as Parameters<Core.Strapi['contentType']>[0]));
+    }
+
     strapi.server.use(async (ctx, next) => {
       if (ctx.method !== 'GET' || ctx.path !== '/health') {
         await next();
@@ -53,6 +62,7 @@ export default {
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await seedArchiveAdministrator(strapi);
+    await applyAuthoringLayouts(strapi);
     applicationReady = true;
   },
 };

@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "newspaper_issues",
+  "info": {
+    "singularName": "newspaper-issue",
+    "pluralName": "newspaper-issues",
+    "displayName": "Newspaper Issue",
+    "description": "One historical issue of the club newspaper. Archive Administrators enter an issue number and the issue PDF. Archive Identifier is generated from the issue number when omitted."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "issueNumber": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "minLength": 1
+    },
+    "pdf": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["files"]
+    },
+    "title": {
+      "type": "string"
+    },
+    "archiveId": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "minLength": 1
+    },
+    "sourceLink": {
+      "type": "string"
+    }
+  }
+}
