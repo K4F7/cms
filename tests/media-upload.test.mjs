@@ -2,7 +2,7 @@
  * Media Item upload + WorkMedia association seam (K4F7/cms#9).
  * Covers upload, preview, Work association, oversize rejection, and
  * persistence across API process restart (local stand-in for container recreate).
- * Browser tests pin strapi-admin-language=en so English chrome selectors stay stable.
+ * Admin pins zh-Hans; Media Library cues accept Chinese and English.
  */
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
@@ -268,6 +268,9 @@ test('Archive Administrator can upload and preview a Media Item from Admin', asy
         text.includes('media') ||
         text.includes('upload') ||
         text.includes('library') ||
+        text.includes('媒体') ||
+        text.includes('上传') ||
+        text.includes('素材') ||
         Boolean(document.querySelector('input[type="file"]'))
       );
     });

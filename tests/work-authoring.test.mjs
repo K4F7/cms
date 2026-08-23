@@ -6,7 +6,7 @@
  * cookies in Chromium. Tests seed the Admin SPA access token via localStorage
  * (Strapi's "remember me" path) after a real Admin login API call, then drive
  * Content Manager in the browser.
- * Browser tests pin strapi-admin-language=en so English chrome selectors stay stable.
+ * Admin pins zh-Hans; button and status cues accept Chinese and English.
  */
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
@@ -183,7 +183,7 @@ test('Archive Administrator can create, reopen, edit, and publish a Work in Admi
     await fillFieldByNameOrLabel(page, 'title', title);
     await fillFieldByNameOrLabel(page, 'archiveId', archiveId);
     await fillFieldByNameOrLabel(page, 'summary', summary);
-    await clickButtonByText(page, ['save']);
+    await clickButtonByText(page, ['save', '保存']);
 
     await page.waitForFunction(
       (expectedTitle) => {
@@ -218,7 +218,7 @@ test('Archive Administrator can create, reopen, edit, and publish a Work in Admi
 
     await fillFieldByNameOrLabel(page, 'title', editedTitle);
     await fillFieldByNameOrLabel(page, 'summary', editedSummary);
-    await clickButtonByText(page, ['save']);
+    await clickButtonByText(page, ['save', '保存']);
     await page.waitForFunction(
       (expectedTitle) =>
         [...document.querySelectorAll('input, textarea')].some((el) =>
@@ -241,11 +241,16 @@ test('Archive Administrator can create, reopen, edit, and publish a Work in Admi
     assert.equal(await pageContains(page, editedTitle), true);
     assert.equal(await pageContains(page, editedSummary), true);
 
-    await clickButtonByText(page, ['publish']);
+    await clickButtonByText(page, ['publish', '发布']);
     await page.waitForFunction(
       () => {
         const text = (document.body?.innerText || '').toLowerCase();
-        return text.includes('published') || text.includes('unpublish');
+        return (
+          text.includes('published') ||
+          text.includes('unpublish') ||
+          text.includes('已发布') ||
+          text.includes('取消发布')
+        );
       },
       { timeout: 30_000 }
     );
@@ -255,7 +260,12 @@ test('Archive Administrator can create, reopen, edit, and publish a Work in Admi
     assert.equal(await pageContains(page, editedTitle), true);
     const publishedCue = await page.evaluate(() => {
       const text = (document.body?.innerText || '').toLowerCase();
-      return text.includes('published') || text.includes('unpublish');
+      return (
+        text.includes('published') ||
+        text.includes('unpublish') ||
+        text.includes('已发布') ||
+        text.includes('取消发布')
+      );
     });
     assert.equal(publishedCue, true);
   } finally {
@@ -291,13 +301,13 @@ test('invalid Work input shows validation feedback and does not publish a succes
     await openWorkCreate(page);
     // Drafts may omit required fields; publish must still enforce them.
     await fillFieldByNameOrLabel(page, 'archiveId', archiveId);
-    await clickButtonByText(page, ['save']);
+    await clickButtonByText(page, ['save', '保存']);
     await page.waitForFunction(
       () => /api::work\.work\/.+/.test(window.location.pathname || ''),
       { timeout: 30_000 }
     );
 
-    await clickButtonByText(page, ['publish']);
+    await clickButtonByText(page, ['publish', '发布']);
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     assert.ok(
@@ -311,6 +321,10 @@ test('invalid Work input shows validation feedback and does not publish a succes
         text.includes('validation') ||
         text.includes('title') ||
         text.includes('cannot') ||
+        text.includes('必填') ||
+        text.includes('校验') ||
+        text.includes('标题') ||
+        text.includes('不能') ||
         Boolean(document.querySelector('[data-error], [aria-invalid="true"], .error'))
       );
     });
