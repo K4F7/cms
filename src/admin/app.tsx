@@ -4,6 +4,7 @@ import contentManagerZhHans from './translations/content-manager.zh-Hans.json';
 import uploadGapsZhHans from './translations/upload-gaps.zh-Hans.json';
 import zhHansDomain from './translations/zh-Hans.json';
 import { watchArchiveIdAutofill } from './authoring';
+import { WorkMediaInput } from './components/WorkMediaInput';
 import favicon from './extensions/favicon.png';
 import loginLogo from './extensions/login-logo.png';
 
@@ -181,6 +182,16 @@ export default {
     notifications: { releases: false },
   },
   register(app: StrapiApp) {
+    const NativeMediaInput = app.library.fields.media as React.ComponentType<Record<string, unknown>>;
+    app.addFields({
+      type: 'media',
+      Component(props: { name?: string }) {
+        if (props.name === 'mediaItems') {
+          return <WorkMediaInput {...(props as React.ComponentProps<typeof WorkMediaInput>)} />;
+        }
+        return NativeMediaInput ? <NativeMediaInput {...props} /> : null;
+      },
+    });
     const menu = app.router.menu;
     for (let i = menu.length - 1; i >= 0; i -= 1) {
       if (!keepPluginMenuLink(menu[i]?.to ?? '')) {
