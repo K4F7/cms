@@ -64,7 +64,23 @@ test('Work type, fields, and chrome stay in the domain overlay', () => {
   assert.equal(domain.Work, '作品');
   assert.equal(domain['content-manager.content-types.api::work.work.title'], '标题');
   assert.equal(domain['content-manager.content-types.api::work.work.archiveId'], '档案标识');
-  assert.equal(domain['content-manager.content-types.api::work.work.mediaItems'], '媒体项');
+  assert.equal(domain['content-manager.content-types.api::work.work.summary'], '文字');
+  assert.equal(domain['content-manager.content-types.api::work.work.mediaItems'], '图片');
+  assert.equal(domain['Newspaper Issue'], '报纸');
+  assert.equal(
+    domain['content-manager.content-types.api::newspaper-issue.newspaper-issue.issueNumber'],
+    '期数'
+  );
+  assert.equal(
+    domain['content-manager.content-types.api::newspaper-issue.newspaper-issue'],
+    '报纸'
+  );
+  assert.equal(
+    domain['content-manager.content-types.api::newspaper-issue.newspaper-issue.archiveId'],
+    '档案标识'
+  );
+  assert.equal(domain['search.placeholder'], '搜索');
+  assert.equal(contentManager['containers.list.table-headers.status'], '状态');
   assert.equal(domain['Auth.form.welcome.subtitle'], '登录迷因创作社');
   assert.equal(domain['app.components.Logout.profile'], '个人资料');
   assert.equal(domain['Content Manager'], '内容管理');

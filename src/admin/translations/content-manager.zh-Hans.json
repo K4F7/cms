@@ -122,6 +122,8 @@
   "containers.List.statusFilter.publishedModified": "已发布（有修改）",
   "containers.List.statusFilter.publishedUnmodified": "已发布（无修改）",
   "containers.list.filters.status": "状态",
+  "containers.list.table-headers.status": "状态",
+  "search.placeholder": "搜索",
   "containers.list.displayedFields": "显示字段",
   "containers.list.items": "{number} {number, plural, =0 {项} one {项} other {项}}",
   "containers.list.table.row-actions": "行操作",

@@ -3,6 +3,7 @@ import adminGapsZhHans from './translations/admin-gaps.zh-Hans.json';
 import contentManagerZhHans from './translations/content-manager.zh-Hans.json';
 import uploadGapsZhHans from './translations/upload-gaps.zh-Hans.json';
 import zhHansDomain from './translations/zh-Hans.json';
+import { watchArchiveIdAutofill } from './authoring';
 import favicon from './extensions/favicon.png';
 import loginLogo from './extensions/login-logo.png';
 
@@ -10,6 +11,10 @@ import loginLogo from './extensions/login-logo.png';
 const BRAND = '#2c8874';
 const ADMIN_LOCALE = 'zh-Hans';
 const ADMIN_LANGUAGE_KEY = 'strapi-admin-language';
+const DOCUMENT_TITLE_SUFFIX = '迷因创作社';
+const LOGIN_ERROR_ZH: Record<string, string> = {
+  'Invalid credentials': '邮箱或密码不正确。',
+};
 
 const brandColors = {
   primary100: '#e8f6f2',
@@ -68,7 +73,57 @@ function keepPluginMenuLink(to: string): boolean {
   return path === 'content-manager' || path.startsWith('content-manager/') || path === 'plugins/upload' || path.startsWith('plugins/upload/');
 }
 
-function hideHomeAndMarketplace(): void {
+function pinDocumentTitle(): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const apply = (): void => {
+    if (document.title === 'Strapi Admin') {
+      document.title = DOCUMENT_TITLE_SUFFIX;
+      return;
+    }
+    if (document.title.endsWith(' | Strapi')) {
+      document.title = `${document.title.slice(0, -' | Strapi'.length)} | ${DOCUMENT_TITLE_SUFFIX}`;
+    }
+  };
+
+  apply();
+  const titleEl = document.querySelector('title');
+  if (titleEl) {
+    new MutationObserver(apply).observe(titleEl, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+}
+
+function localizeLoginError(): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const apply = (): void => {
+    const el = document.getElementById('global-form-error');
+    if (!el) {
+      return;
+    }
+    const next = LOGIN_ERROR_ZH[el.textContent?.trim() ?? ''];
+    if (next) {
+      el.textContent = next;
+    }
+  };
+
+  apply();
+  new MutationObserver(apply).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+}
+
+function injectAdminChrome(): void {
   if (typeof document === 'undefined') {
     return;
   }
@@ -82,9 +137,14 @@ function hideHomeAndMarketplace(): void {
     'a[href="https://market.strapi.io"],',
     'a[href^="https://market.strapi.io?"],',
     'li:has(a[href="https://market.strapi.io"]),',
-    'li:has(a[aria-label="Home"]),',
-    'li:has(a[aria-label="首页"]),',
-    'nav ul li:has(> a[href="/"]) {',
+    'a[href*="plugin::users-permissions"],',
+    'li:has(a[href*="plugin::users-permissions"]),',
+    '[aria-label="选择界面语言"],',
+    '[aria-label="Select interface language"],',
+    'header:has([aria-label="选择界面语言"]),',
+    'header:has([aria-label="Select interface language"]),',
+    'aside:has(a[href*="docs.strapi.io"]),',
+    'a[href*="docs.strapi.io"] {',
     '  display: none !important;',
     '}',
   ].join('\n');
@@ -117,8 +177,10 @@ export default {
     }
   },
   bootstrap(_app: StrapiApp) {
-    hideHomeAndMarketplace();
-
+    injectAdminChrome();
+    pinDocumentTitle();
+    localizeLoginError();
+    watchArchiveIdAutofill();
     pinAdminLocale();
   },
 };
