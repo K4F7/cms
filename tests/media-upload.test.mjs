@@ -5,7 +5,9 @@
  * Admin pins zh-Hans; Media Library cues accept Chinese and English.
  */
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import puppeteer from 'puppeteer-core';
 import { ADMIN, PORTS, chromePath } from '../scripts/lib.mjs';
@@ -275,6 +277,47 @@ test('Archive Administrator can upload and preview a Media Item from Admin', asy
       );
     });
     assert.equal(libraryVisible, true);
+
+    await page.goto(
+      `${adminOrigin}/content-manager/collection-types/api::work.work/create`,
+      { waitUntil: 'domcontentloaded', timeout: 60_000 }
+    );
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || '';
+      return text.includes('上传文件') && text.includes('选择已有文件') && text.includes('拖放图片或 PDF');
+    });
+
+    const fixtureDir = mkdtempSync(join(tmpdir(), 'cms-work-media-'));
+    const firstPath = join(fixtureDir, `work-first-${stamp}.png`);
+    const secondPath = join(fixtureDir, `work-second-${stamp}.png`);
+    writeFileSync(firstPath, TINY_PNG);
+    writeFileSync(secondPath, TINY_PNG);
+    try {
+      const input = await page.waitForSelector('input[type="file"][multiple]');
+      const uploadResponse = page.waitForResponse(
+        (response) => response.url() === `${apiOrigin}/upload` && response.request().method() === 'POST',
+        { timeout: 60_000 }
+      );
+      await input.uploadFile(firstPath, secondPath);
+      const response = await uploadResponse;
+      assert.ok(response.status() === 200 || response.status() === 201);
+      await page.waitForFunction(
+        (first, second) => {
+          const text = document.body?.innerText || '';
+          return text.includes(first) && text.includes(second) && text.includes('上移') && text.includes('下载');
+        },
+        {},
+        `work-first-${stamp}.png`,
+        `work-second-${stamp}.png`
+      );
+      await page.evaluate(() => {
+        const edit = [...document.querySelectorAll('button')].find((button) => button.textContent?.trim() === '编辑');
+        edit?.click();
+      });
+      await page.waitForFunction(() => (document.body?.innerText || '').includes('替代文本'));
+    } finally {
+      rmSync(fixtureDir, { recursive: true, force: true });
+    }
   } finally {
     await browser.close();
   }
