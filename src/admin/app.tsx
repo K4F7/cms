@@ -147,6 +147,18 @@ function injectAdminChrome(): void {
     'a[href*="docs.strapi.io"] {',
     '  display: none !important;',
     '}',
+    '#strapi:has(a[href="/auth/forgot-password"]) {',
+    '  min-height: 100%;',
+    '}',
+    '#strapi:has(a[href="/auth/forgot-password"]) main {',
+    '  display: flex;',
+    '  flex-direction: column;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  box-sizing: border-box;',
+    '  min-height: 100vh;',
+    '  padding-block: 2.4rem;',
+    '}',
   ].join('\n');
   document.head.appendChild(style);
 }
