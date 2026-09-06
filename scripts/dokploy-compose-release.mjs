@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * Pin CMS_IMAGE_TAG on a Dokploy Compose service, then deploy.
+ * Pin CMS_IMAGE_TAG (and APP_VERSION) on a Dokploy Compose service, then deploy.
  *
  * Env: DOKPLOY_URL, DOKPLOY_API_KEY, DOKPLOY_COMPOSE_ID, CMS_IMAGE_TAG|GITHUB_SHA.
  * Merges into the existing compose `env` string so DATABASE_* and peers stay.
+ * Drops stale CMS_IMAGE_DIGEST so /health does not keep an old digest.
  */
 
 import { pathToFileURL } from 'node:url';
@@ -41,6 +42,37 @@ export function upsertEnvVar(envText, key, value) {
     }
   }
   return next.join('\n');
+}
+
+/**
+ * Remove every `key=` line from an env blob (keeps blank lines / peers).
+ * @param {string} envText
+ * @param {string} key
+ * @returns {string}
+ */
+export function removeEnvVar(envText, key) {
+  if (!key || /[\n\r=]/.test(key)) {
+    throw new Error(`invalid env key: ${JSON.stringify(key)}`);
+  }
+  const raw = envText == null ? '' : String(envText);
+  if (raw.length === 0) return '';
+  const prefix = `${key}=`;
+  const lines = raw.split(/\r?\n/).filter((line) => !line.startsWith(prefix));
+  return lines.join('\n');
+}
+
+/**
+ * Merge release identity into Dokploy env: pin CMS_IMAGE_TAG + APP_VERSION,
+ * drop stale CMS_IMAGE_DIGEST.
+ * @param {string} envText
+ * @param {string} imageTag full 40-char sha
+ * @returns {string}
+ */
+export function mergeReleaseEnv(envText, imageTag) {
+  let next = upsertEnvVar(envText, 'CMS_IMAGE_TAG', imageTag);
+  next = upsertEnvVar(next, 'APP_VERSION', imageTag);
+  next = removeEnvVar(next, 'CMS_IMAGE_DIGEST');
+  return next;
 }
 
 /**
@@ -98,7 +130,7 @@ export async function releaseCompose(opts) {
 
   const current = await dokploy('GET', `compose.one?composeId=${encodeURIComponent(composeId)}`);
   const existingEnv = current && typeof current.env === 'string' ? current.env : '';
-  const mergedEnv = upsertEnvVar(existingEnv, 'CMS_IMAGE_TAG', imageTag);
+  const mergedEnv = mergeReleaseEnv(existingEnv, imageTag);
 
   await dokploy('POST', 'compose.saveEnvironment', {
     composeId,
@@ -126,6 +158,7 @@ async function main() {
       ok: true,
       composeId: result.composeId,
       CMS_IMAGE_TAG: result.imageTag,
+      APP_VERSION: result.imageTag,
     }),
   );
 }

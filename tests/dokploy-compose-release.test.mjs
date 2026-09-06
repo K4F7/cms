@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  mergeReleaseEnv,
   releaseCompose,
+  removeEnvVar,
   upsertEnvVar,
 } from '../scripts/dokploy-compose-release.mjs';
 
@@ -30,11 +32,52 @@ test('upsertEnvVar appends CMS_IMAGE_TAG when missing', () => {
   assert.match(after, /^DATABASE_HOST=127\.0\.0\.1$/m);
 });
 
+test('removeEnvVar drops CMS_IMAGE_DIGEST lines and keeps peers', () => {
+  const before = [
+    'DATABASE_HOST=127.0.0.1',
+    'CMS_IMAGE_DIGEST=sha256:stale',
+    'APP_VERSION=old',
+    '',
+  ].join('\n');
+  const after = removeEnvVar(before, 'CMS_IMAGE_DIGEST');
+  assert.doesNotMatch(after, /CMS_IMAGE_DIGEST/);
+  assert.match(after, /^DATABASE_HOST=127\.0\.0\.1$/m);
+  assert.match(after, /^APP_VERSION=old$/m);
+});
+
+test('mergeReleaseEnv pins CMS_IMAGE_TAG and APP_VERSION, drops digest', () => {
+  const before = [
+    'DATABASE_PASSWORD=secret',
+    `CMS_IMAGE_TAG=${SHA}`,
+    'APP_VERSION=stale-version',
+    'CMS_IMAGE_DIGEST=sha256:olddigest',
+    'DATABASE_HOST=127.0.0.1',
+  ].join('\n');
+
+  const after = mergeReleaseEnv(before, SHA2);
+  assert.match(after, new RegExp(`^CMS_IMAGE_TAG=${SHA2}$`, 'm'));
+  assert.match(after, new RegExp(`^APP_VERSION=${SHA2}$`, 'm'));
+  assert.doesNotMatch(after, /CMS_IMAGE_DIGEST/);
+  assert.doesNotMatch(after, /stale-version/);
+  assert.doesNotMatch(after, new RegExp(SHA));
+  assert.match(after, /^DATABASE_PASSWORD=secret$/m);
+});
+
+test('mergeReleaseEnv appends APP_VERSION when missing', () => {
+  const before = 'DATABASE_HOST=127.0.0.1\n';
+  const after = mergeReleaseEnv(before, SHA);
+  assert.match(after, new RegExp(`^CMS_IMAGE_TAG=${SHA}$`, 'm'));
+  assert.match(after, new RegExp(`^APP_VERSION=${SHA}$`, 'm'));
+  assert.doesNotMatch(after, /CMS_IMAGE_DIGEST/);
+});
+
 test('releaseCompose GETs env, POSTs merged saveEnvironment, then deploy', async () => {
   const calls = [];
   const existing = [
     'DATABASE_PASSWORD=secret',
     `CMS_IMAGE_TAG=${SHA}`,
+    'APP_VERSION=old-app',
+    'CMS_IMAGE_DIGEST=sha256:keep-me-not',
     'DATABASE_HOST=127.0.0.1',
   ].join('\n');
 
@@ -75,6 +118,9 @@ test('releaseCompose GETs env, POSTs merged saveEnvironment, then deploy', async
   const saveBody = JSON.parse(calls[1].body);
   assert.equal(saveBody.composeId, 'comp1');
   assert.match(saveBody.env, new RegExp(`^CMS_IMAGE_TAG=${SHA2}$`, 'm'));
+  assert.match(saveBody.env, new RegExp(`^APP_VERSION=${SHA2}$`, 'm'));
+  assert.doesNotMatch(saveBody.env, /CMS_IMAGE_DIGEST/);
+  assert.doesNotMatch(saveBody.env, /old-app/);
   assert.match(saveBody.env, /^DATABASE_PASSWORD=secret$/m);
   assert.match(saveBody.env, /^DATABASE_HOST=127\.0\.0\.1$/m);
   assert.doesNotMatch(saveBody.env, new RegExp(SHA));
@@ -84,6 +130,7 @@ test('releaseCompose GETs env, POSTs merged saveEnvironment, then deploy', async
   assert.deepEqual(JSON.parse(calls[2].body), { composeId: 'comp1' });
 
   assert.equal(result.imageTag, SHA2);
+  assert.match(result.env, new RegExp(`^APP_VERSION=${SHA2}$`, 'm'));
 });
 
 test('releaseCompose fails the job when Dokploy returns non-2xx', async () => {

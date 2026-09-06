@@ -52,7 +52,7 @@ npm test
 | 本地不写证据 | `npm run test:baseline` | CI 使用的同一套检查 |
 | 已部署生产 origin | 上面的 `npm test` | 不启动本地栈；不触发真实发布 |
 
-日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>`（`:latest` 仅调试），再 CI 合并 `CMS_IMAGE_TAG=<完整 sha>` 并 `compose.deploy`（autoDeploy 关闭）。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
+日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>`（`:latest` 仅调试），再 CI 合并 `CMS_IMAGE_TAG=<完整 sha>` 与同值 `APP_VERSION`（并去掉过期 `CMS_IMAGE_DIGEST`）后 `compose.deploy`（autoDeploy 关闭）。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
 
 ## 验收对照
 
@@ -78,7 +78,7 @@ npm test
 
 - 登录响应只保留 cookie **属性**（`HttpOnly` / `Secure` / `SameSite=None` / `Path=/admin`），不含 cookie 值或 JWT。
 - 浏览器网络记录只保留 method、origin+path、status。
-- 自建 deploy webhook 已退役；证据不再记录 HMAC `/deploy` 契约。镜像由 Actions 推 GHCR `:sha`，CI 钉 `CMS_IMAGE_TAG` 后 `compose.deploy`。
+- 自建 deploy webhook 已退役；证据不再记录 HMAC `/deploy` 契约。镜像由 Actions 推 GHCR `:sha`，CI 钉 `CMS_IMAGE_TAG`/`APP_VERSION` 后 `compose.deploy`。
 
 跨站 cookie 的已知限制见 `prototype/cross-origin-admin-upload/FINDINGS.md`。本验收沿用该结论：自签 TLS 下 Admin SPA 可能无法保存 refresh cookie；这不能当作生产证书失败的证据。
 

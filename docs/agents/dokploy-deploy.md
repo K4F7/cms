@@ -7,9 +7,10 @@ Production API releases are driven by `.github/workflows/publish.yml` via
 ## Flow
 
 1. Push `ghcr.io/k4f7/cms:<full-sha>` (`:latest` debug only).
-2. GET `compose.one` → merge `CMS_IMAGE_TAG=<full 40-char sha>` into existing
-   env (keep `DATABASE_*`) → POST `compose.saveEnvironment` → POST
-   `compose.deploy`.
+2. GET `compose.one` → merge `CMS_IMAGE_TAG=<full 40-char sha>` and the same
+   value into `APP_VERSION` (so `/health` version matches the pinned image);
+   drop any stale `CMS_IMAGE_DIGEST` → POST `compose.saveEnvironment` → POST
+   `compose.deploy`. Keep `DATABASE_*` and other peers.
 3. Compose image: `ghcr.io/k4f7/cms:${CMS_IMAGE_TAG:?...}` + `pull_policy: always`.
 
 ## Secrets (names only)
