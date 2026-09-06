@@ -19,7 +19,7 @@ https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上
 
 每次 `main` 推送两端都发：Vercel Git Integration 发布 Admin；GitHub Actions
 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`（`:latest` 仅调试，非生产），镜像推成功后
-由 CI 调用 Dokploy：合并写入 `CMS_IMAGE_TAG=<完整 sha>`（`compose.saveEnvironment`）
+由 CI 调用 Dokploy：合并写入 `CMS_IMAGE_TAG=<完整 sha>` 与同值 `APP_VERSION`（并去掉过期 `CMS_IMAGE_DIGEST`；`compose.saveEnvironment`）
 再 `compose.deploy`，重建 `deploy-api-1`。`deploy/compose.yml` 要求显式
 `CMS_IMAGE_TAG`（完整 git sha，无 `:latest` 默认），`pull_policy: always`。
 生产不再依赖 GitHub push → Dokploy autoDeploy 换镜像。本仓库不再提供自建
