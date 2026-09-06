@@ -1,6 +1,9 @@
 name: publish
 
-# Build/push ghcr.io/k4f7/cms:<git-sha> and :latest; runtime pull is Dokploy (no self-hosted webhook).
+# Build/push ghcr.io/k4f7/cms:<git-sha> (and :latest for debug only).
+# After a successful push, pin CMS_IMAGE_TAG to the full sha via Dokploy
+# compose.saveEnvironment (env merge) and compose.deploy. Production must not
+# rely on :latest or GitHub->Dokploy autoDeploy for image swaps.
 
 on:
   push:
@@ -69,3 +72,11 @@ jobs:
             org.opencontainers.image.revision=${{ steps.meta.outputs.sha }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
+
+      - name: Pin sha and deploy via Dokploy
+        env:
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_COMPOSE_ID: ${{ secrets.DOKPLOY_COMPOSE_ID }}
+          CMS_IMAGE_TAG: ${{ github.sha }}
+        run: node scripts/dokploy-compose-release.mjs
