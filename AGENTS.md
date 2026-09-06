@@ -15,3 +15,7 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/do
 ### Push flow
 
 Done issue → open PR → `gh pr merge --auto --squash`. `main` waits for `baseline` CI. See `docs/agents/push-flow.md`.
+
+### Dokploy release
+
+CI pins `CMS_IMAGE_TAG` to the full git sha and calls `compose.deploy`. See `docs/agents/dokploy-deploy.md`.

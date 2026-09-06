@@ -23,7 +23,7 @@ https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上
 再 `compose.deploy`，重建 `deploy-api-1`。`deploy/compose.yml` 要求显式
 `CMS_IMAGE_TAG`（完整 git sha，无 `:latest` 默认），`pull_policy: always`。
 生产不再依赖 GitHub push → Dokploy autoDeploy 换镜像。本仓库不再提供自建
-`/deploy` HMAC webhook。
+`/deploy` HMAC webhook。详见 [docs/agents/dokploy-deploy.md](docs/agents/dokploy-deploy.md)。
 
 GitHub Environment `production` 需配置（仅名字，勿把密钥写进仓库）：
 `DOKPLOY_URL`（文档值 `https://dokploy.sein.moe`）、`DOKPLOY_API_KEY`、
