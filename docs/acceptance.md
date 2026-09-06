@@ -52,7 +52,7 @@ npm test
 | 本地不写证据 | `npm run test:baseline` | CI 使用的同一套检查 |
 | 已部署生产 origin | 上面的 `npm test` | 不启动本地栈；不触发真实发布 |
 
-日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `:latest`；运行时由 Dokploy 按 `CMS_IMAGE_TAG` 拉取。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
+日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>`（`:latest` 仅调试），再 CI 合并 `CMS_IMAGE_TAG=<完整 sha>` 并 `compose.deploy`（autoDeploy 关闭）。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
 
 ## 验收对照
 
@@ -63,7 +63,7 @@ npm test
 | 上传图片或 PDF，预览并建立 WorkMedia Relationship | `tests/media-upload.test.mjs` | 见下方运行记录 |
 | 小于 50 MiB 成功；超过上限失败且不留下 Media Item | `tests/media-upload.test.mjs` | 见下方运行记录 |
 | 未批准 origin CORS 失败；配置 Admin origin 带 credentials 成功 | `tests/login.test.mjs` | 见下方运行记录 |
-| GHCR 镜像 tag 为已知 SHA；健康响应含 SHA 与 digest | `GET /health` + `publish.yml` build/push | 本地 `/health` 通过；镜像推送由 CI 承担，Dokploy 拉取 |
+| GHCR 镜像 tag 为已知 SHA；健康响应含 SHA 与 digest | `GET /health` + `publish.yml` build/push + Dokploy pin/deploy | 本地 `/health` 通过；镜像推送与 `CMS_IMAGE_TAG` 钉死由 CI 承担 |
 | 重建 API 后 Work、Media Item、WorkMedia、预览仍可用 | `tests/media-upload.test.mjs` 进程重启 | 本地 `POST /restart` 通过（容器重建的同机替身） |
 | 自建 deploy webhook 已退役 | — | 见发布说明；不再验收 HMAC `/deploy` |
 | 健康失败不得当作发布成功 | `GET /health` | 本地 `/health`；运行时由 Dokploy 侧处理 |
@@ -78,7 +78,7 @@ npm test
 
 - 登录响应只保留 cookie **属性**（`HttpOnly` / `Secure` / `SameSite=None` / `Path=/admin`），不含 cookie 值或 JWT。
 - 浏览器网络记录只保留 method、origin+path、status。
-- 自建 deploy webhook 已退役；证据不再记录 HMAC `/deploy` 契约。镜像由 Actions 推 GHCR，Dokploy 拉取。
+- 自建 deploy webhook 已退役；证据不再记录 HMAC `/deploy` 契约。镜像由 Actions 推 GHCR `:sha`，CI 钉 `CMS_IMAGE_TAG` 后 `compose.deploy`。
 
 跨站 cookie 的已知限制见 `prototype/cross-origin-admin-upload/FINDINGS.md`。本验收沿用该结论：自签 TLS 下 Admin SPA 可能无法保存 refresh cookie；这不能当作生产证书失败的证据。
 
@@ -87,7 +87,7 @@ npm test
 - 本记录针对仓库内的生产形态栈，不是一次已接线的 louis / Vercel 人工值班记录。生产 origin 需要 GitHub Environment `production` 中的密钥与稳定证书后再跑上一节的 `npm test`。
 - 本地数据库是 SQLite（`.tmp/baseline.db`），不是 1Panel PostgreSQL。数据库私有性与独立 user 仍按 `docs/production-baseline.md` 在 louis 上落实。
 - 本地媒体在 `public/uploads`；生产媒体在宿主机 bind mount。控制面 `POST /restart` 只重建 API 进程，等价于“同机重建后文件还在”，不是 `docker compose` 本身。
-- 真实 GHCR 推送由 `publish.yml` 覆盖；运行时拉取与重建由 Dokploy 负责。本验收不在开发机上 pull 生产镜像。
+- 真实 GHCR 推送与 Dokploy pin/deploy 由 `publish.yml` 覆盖。本验收不在开发机上 pull 生产镜像或调用生产 Dokploy。
 - 不覆盖备份、R2、Payload 迁移、Koishi Archive Read 绑定、公开作品站。
 
 ## 本次运行
