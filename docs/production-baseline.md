@@ -52,7 +52,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 4. 复制 `deploy/.env.example` 为 `deploy/.env`，从 GitHub Environment `production` 填入运行时密钥。
 5. `APP_VERSION` 设为当前 Git SHA。
 6. 媒体目录使用宿主机 bind mount（默认 `/opt/cms/media`）。这只保证同机容器重建，不是容灾。
-7. 启动：`docker compose -f deploy/compose.yml up -d`（compose 仅 `image:`，无 `build:`；容器名 `deploy-api-1`）。须设置完整 git sha 的 `CMS_IMAGE_TAG`（无 `:latest` 默认）；CI 合并 env 时会同步写入同值的 `APP_VERSION`，并去掉过期的 `CMS_IMAGE_DIGEST`。日常发版由 Actions 推 GHCR `:sha` 后调 Dokploy 钉 tag 并 deploy；自建 webhook 已退役。
+7. 启动：`docker compose -f deploy/compose.yml up -d`（compose 仅 `image:`，无 `build:`；容器名 `deploy-api-1`）。须设置完整 git sha 的 `CMS_IMAGE_TAG`（无 `:latest` 默认）；CI 合并 env 时会同步写入同值的 `APP_VERSION`，并去掉过期的 `CMS_IMAGE_DIGEST`。`api` 带 Docker healthcheck（`127.0.0.1:1337/health`）与 `mem_limit: 1g`。日常发版由 Actions 推 GHCR `:sha` 后调 Dokploy 钉 tag 并 deploy；自建 webhook 已退役。
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 

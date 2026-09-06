@@ -12,6 +12,7 @@ Production API releases are driven by `.github/workflows/publish.yml` via
    drop any stale `CMS_IMAGE_DIGEST` → POST `compose.saveEnvironment` → POST
    `compose.deploy`. Keep `DATABASE_*` and other peers.
 3. Compose image: `ghcr.io/k4f7/cms:${CMS_IMAGE_TAG:?...}` + `pull_policy: always`.
+   `api` healthcheck probes `http://127.0.0.1:1337/health` (host network) via Node `fetch`; `mem_limit: 1g`.
 
 ## Secrets (names only)
 
