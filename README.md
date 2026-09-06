@@ -18,10 +18,17 @@ https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上
 ```
 
 每次 `main` 推送两端都发：Vercel Git Integration 发布 Admin；GitHub Actions
-构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `:latest`。运行时
-`deploy/compose.yml` 只拉镜像（`CMS_IMAGE_TAG`，默认 `latest`），由 Dokploy
-GitHub autoDeploy 重建 `deploy-api-1`；service 设 `pull_policy: always`，避免缓存的
-`:latest` 不自动 pull。本仓库不再提供自建 `/deploy` HMAC webhook。
+构建并推送 `ghcr.io/k4f7/cms:<git-sha>`（`:latest` 仅调试，非生产），镜像推成功后
+由 CI 调用 Dokploy：合并写入 `CMS_IMAGE_TAG=<完整 sha>`（`compose.saveEnvironment`）
+再 `compose.deploy`，重建 `deploy-api-1`。`deploy/compose.yml` 要求显式
+`CMS_IMAGE_TAG`（完整 git sha，无 `:latest` 默认），`pull_policy: always`。
+生产不再依赖 GitHub push → Dokploy autoDeploy 换镜像。本仓库不再提供自建
+`/deploy` HMAC webhook。
+
+GitHub Environment `production` 需配置（仅名字，勿把密钥写进仓库）：
+`DOKPLOY_URL`（文档值 `https://dokploy.sein.moe`）、`DOKPLOY_API_KEY`、
+`DOKPLOY_COMPOSE_ID`。现网 inventory：cms-api composeId `DORSlxjq_1B7NNAwi2l6M`
+（Actions 必须读 secret，不要硬编码进 workflow）。
 
 ## 本地基线
 

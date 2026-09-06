@@ -1,13 +1,14 @@
 # Strapi API on louis. PostgreSQL stays on the existing 1Panel instance.
 # Host networking is required because that Postgres listens on loopback only.
-# Production: pull only from GHCR (no on-server build). Dokploy GitHub autoDeploy
-# recreates the container; pull_policy: always so cached :latest is re-pulled.
-# set CMS_IMAGE_TAG=latest (or a git sha).
+# Production: pull only from GHCR (no on-server build). CI pins CMS_IMAGE_TAG to
+# the full git sha and calls Dokploy compose.saveEnvironment + compose.deploy.
+# Do not rely on :latest or GitHub→Dokploy autoDeploy for production image swaps.
+# CMS_IMAGE_TAG is required (full git sha); there is no default.
 
 services:
   api:
     container_name: deploy-api-1
-    image: ghcr.io/k4f7/cms:${CMS_IMAGE_TAG:-latest}
+    image: ghcr.io/k4f7/cms:${CMS_IMAGE_TAG:?CMS_IMAGE_TAG must be set to a full git sha}
     pull_policy: always
     network_mode: host
     env_file: .env

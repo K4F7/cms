@@ -52,7 +52,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 4. 复制 `deploy/.env.example` 为 `deploy/.env`，从 GitHub Environment `production` 填入运行时密钥。
 5. `APP_VERSION` 设为当前 Git SHA。
 6. 媒体目录使用宿主机 bind mount（默认 `/opt/cms/media`）。这只保证同机容器重建，不是容灾。
-7. 启动：`docker compose -f deploy/compose.yml up -d`（compose 仅 `image:`，无 `build:`；容器名 `deploy-api-1`）。日常镜像由 Actions 推 GHCR（`:sha` + `:latest`），Dokploy 拉取；自建 webhook 已退役。
+7. 启动：`docker compose -f deploy/compose.yml up -d`（compose 仅 `image:`，无 `build:`；容器名 `deploy-api-1`）。须设置完整 git sha 的 `CMS_IMAGE_TAG`（无 `:latest` 默认）。日常发版由 Actions 推 GHCR `:sha` 后调 Dokploy 钉 tag 并 deploy；自建 webhook 已退役。
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 
@@ -100,7 +100,13 @@ npm run test:baseline
 ## 发布
 
 1. 在 louis 上安装 OpenResty 站点（仅 API upstream，无 `/deploy` location），访问日志使用不含 body 的格式。
-2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `ghcr.io/k4f7/cms:latest`。
-3. 运行时由 Dokploy（GitHub autoDeploy）按 `CMS_IMAGE_TAG`（默认 `latest`）拉取并重建 `deploy-api-1`；`deploy/compose.yml` 使用 `pull_policy: always`，autoDeploy 需 always pull 才能拿到新的 `:latest`。本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
-4. 运行时环境（`ADMIN_ORIGIN`、`PUBLIC_URL`、数据库与密钥等）在 Dokploy / 主机 `deploy/.env` 中配置，不要把 secret 写进仓库。
-5. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。
+2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`；同时推 `ghcr.io/k4f7/cms:latest` 仅供调试，**非生产**。
+3. 镜像推成功后，同一 job 调用 Dokploy API（失败则 job fail）：
+   - `GET compose.one` 读取现有 `env` 字符串
+   - 合并/插入 `CMS_IMAGE_TAG=<完整 GITHUB_SHA>`（保留 `DATABASE_*` 等其余行）
+   - `POST compose.saveEnvironment`（整段 `env`）
+   - `POST compose.deploy` `{"composeId":"..."}`
+4. 生产不再依赖 GitHub push → Dokploy autoDeploy 换镜像（Helm / 面板应关闭 autoDeploy）。`deploy/compose.yml` 要求显式完整 sha 的 `CMS_IMAGE_TAG`，并设 `pull_policy: always`。本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
+5. GitHub Environment `production` secrets（**只记名字，不要写密钥值**）：`DOKPLOY_URL`（`https://dokploy.sein.moe`）、`DOKPLOY_API_KEY`、`DOKPLOY_COMPOSE_ID`。Inventory：现网 cms-api composeId `DORSlxjq_1B7NNAwi2l6M`（workflow 必须读 secret）。
+6. 运行时环境（`ADMIN_ORIGIN`、`PUBLIC_URL`、数据库与密钥等）在 Dokploy / 主机 `deploy/.env` 中配置，不要把 secret 写进仓库。
+7. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。
