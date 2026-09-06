@@ -20,7 +20,8 @@ https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上
 每次 `main` 推送两端都发：Vercel Git Integration 发布 Admin；GitHub Actions
 构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `:latest`。运行时
 `deploy/compose.yml` 只拉镜像（`CMS_IMAGE_TAG`，默认 `latest`），由 Dokploy
-GitHub autoDeploy 重建 `deploy-api-1`；本仓库不再提供自建 `/deploy` HMAC webhook。
+GitHub autoDeploy 重建 `deploy-api-1`；service 设 `pull_policy: always`，避免缓存的
+`:latest` 不自动 pull。本仓库不再提供自建 `/deploy` HMAC webhook。
 
 ## 本地基线
 

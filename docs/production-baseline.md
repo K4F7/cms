@@ -101,6 +101,6 @@ npm run test:baseline
 
 1. 在 louis 上安装 OpenResty 站点（仅 API upstream，无 `/deploy` location），访问日志使用不含 body 的格式。
 2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `ghcr.io/k4f7/cms:latest`。
-3. 运行时由 Dokploy（GitHub autoDeploy）按 `CMS_IMAGE_TAG`（默认 `latest`）拉取并重建 `deploy-api-1`；本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
+3. 运行时由 Dokploy（GitHub autoDeploy）按 `CMS_IMAGE_TAG`（默认 `latest`）拉取并重建 `deploy-api-1`；`deploy/compose.yml` 使用 `pull_policy: always`，autoDeploy 需 always pull 才能拿到新的 `:latest`。本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
 4. 运行时环境（`ADMIN_ORIGIN`、`PUBLIC_URL`、数据库与密钥等）在 Dokploy / 主机 `deploy/.env` 中配置，不要把 secret 写进仓库。
 5. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。
