@@ -18,8 +18,8 @@ https://cms.sein.moe    VPS louis: OpenResty → Strapi API / 认证 / 本地上
 ```
 
 每次 `main` 推送两端都发：Vercel Git Integration 发布 Admin；GitHub Actions
-构建 `ghcr.io/k4f7/cms:<git-sha>`，再通过带时间戳的 HMAC webhook 让 VPS
-拉取镜像并重建容器。健康检查通过后才算发布成功。
+构建并推送 `ghcr.io/k4f7/cms:<git-sha>`。运行时由 Dokploy 拉取该镜像；
+本仓库不再提供自建 `/deploy` HMAC webhook。
 
 ## 本地基线
 
@@ -28,7 +28,7 @@ npm install
 npm run test:baseline
 ```
 
-这会拉起生产形态的分离 origin（预构建 Admin + TLS 代理 API），并检查公开健康检查、登录、Work、Media Item 与发布 webhook 契约。生产配置见 [docs/production-baseline.md](docs/production-baseline.md)。首版验收与重复步骤见 [docs/acceptance.md](docs/acceptance.md)：
+这会拉起生产形态的分离 origin（预构建 Admin + TLS 代理 API），并检查公开健康检查、登录、Work、Media Item 等生产形态 seam。生产配置见 [docs/production-baseline.md](docs/production-baseline.md)。首版验收与重复步骤见 [docs/acceptance.md](docs/acceptance.md)：
 
 ```powershell
 npm run test:acceptance
@@ -61,7 +61,7 @@ Relationship、Archive Administrator、Archive Read Contract。
 | [#7](https://github.com/K4F7/cms/issues/7) | #79 | 可登录生产基线 |
 | [#8](https://github.com/K4F7/cms/issues/8) | #81 | Work 草稿、修改与发布 |
 | [#9](https://github.com/K4F7/cms/issues/9) | #82 | Media Item 上传与关联 |
-| [#10](https://github.com/K4F7/cms/issues/10) | #83 | GHCR webhook 发布 |
+| [#10](https://github.com/K4F7/cms/issues/10) | #83 | GHCR 镜像发布（webhook 已退役） |
 | [#11](https://github.com/K4F7/cms/issues/11) | #84 | 首版生产形态验收 |
 
 留在 `memebot` 的相关票：[#61](https://github.com/K4F7/memebot/issues/61) 总地图，[#70](https://github.com/K4F7/memebot/issues/70) Koishi 只读适配，[#76](https://github.com/K4F7/memebot/issues/76) Yakumo / 插件发布。

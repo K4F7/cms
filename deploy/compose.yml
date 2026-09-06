@@ -1,7 +1,6 @@
 # Strapi API on louis. PostgreSQL stays on the existing 1Panel instance.
 # Host networking is required because that Postgres listens on loopback only.
-# The deploy webhook (K4F7/cms#10) runs as a host Node process — see
-# deploy/webhook/cms-deploy-webhook.service — and is not part of this Compose file.
+# Image tags come from GHCR (ghcr.io/k4f7/cms:<sha>); Dokploy pulls/recreates.
 
 services:
   api:
