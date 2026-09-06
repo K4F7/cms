@@ -76,7 +76,7 @@
       "name": "self-hosted deploy path retired (Dokploy pulls GHCR)",
       "ok": true,
       "detail": {
-        "note": "HMAC /deploy path removed; Actions only push ghcr.io/k4f7/cms:<sha>"
+        "note": "HMAC /deploy path removed; Actions push ghcr.io/k4f7/cms:<sha> and :latest"
       }
     },
     {

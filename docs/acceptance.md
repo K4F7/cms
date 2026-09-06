@@ -52,7 +52,7 @@ npm test
 | 本地不写证据 | `npm run test:baseline` | CI 使用的同一套检查 |
 | 已部署生产 origin | 上面的 `npm test` | 不启动本地栈；不触发真实发布 |
 
-日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>`；运行时由 Dokploy 拉取。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
+日常发布路径是 `.github/workflows/publish.yml`：构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `:latest`；运行时由 Dokploy 按 `CMS_IMAGE_TAG` 拉取。自建 HMAC `/deploy` 路径已退役。验收不在本地对生产机发起真实发布。
 
 ## 验收对照
 

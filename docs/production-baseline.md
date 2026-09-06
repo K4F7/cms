@@ -52,7 +52,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 4. 复制 `deploy/.env.example` 为 `deploy/.env`，从 GitHub Environment `production` 填入运行时密钥。
 5. `APP_VERSION` 设为当前 Git SHA。
 6. 媒体目录使用宿主机 bind mount（默认 `/opt/cms/media`）。这只保证同机容器重建，不是容灾。
-7. 启动：`docker compose -f deploy/compose.yml up -d --no-build`。日常镜像由 Actions 推 GHCR，Dokploy 拉取；自建 webhook 已退役。
+7. 启动：`docker compose -f deploy/compose.yml up -d`（compose 仅 `image:`，无 `build:`；容器名 `deploy-api-1`）。日常镜像由 Actions 推 GHCR（`:sha` + `:latest`），Dokploy 拉取；自建 webhook 已退役。
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 
@@ -100,7 +100,7 @@ npm run test:baseline
 ## 发布
 
 1. 在 louis 上安装 OpenResty 站点（仅 API upstream，无 `/deploy` location），访问日志使用不含 body 的格式。
-2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`。
-3. 运行时由 Dokploy 拉取上述 GHCR 镜像并重建容器；本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
+2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>` 与 `ghcr.io/k4f7/cms:latest`。
+3. 运行时由 Dokploy（GitHub autoDeploy）按 `CMS_IMAGE_TAG`（默认 `latest`）拉取并重建 `deploy-api-1`；本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
 4. 运行时环境（`ADMIN_ORIGIN`、`PUBLIC_URL`、数据库与密钥等）在 Dokploy / 主机 `deploy/.env` 中配置，不要把 secret 写进仓库。
 5. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。
