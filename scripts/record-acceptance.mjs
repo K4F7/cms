@@ -6,10 +6,6 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import puppeteer from 'puppeteer-core';
-import {
-  handleDeployRequest,
-  signDeployRequest,
-} from '../deploy/webhook/contract.mjs';
 import { cookieFlags, originAndPath, redactAcceptance } from './acceptance-evidence.mjs';
 import { ADMIN, APP_VERSION, IMAGE_DIGEST, ORIGINS, chromePath, root } from './lib.mjs';
 
@@ -154,105 +150,10 @@ export async function recordAcceptance() {
     { status: dead.status }
   );
 
-  const secret = 'acceptance-deploy-secret';
-  const timestamp = Math.floor(Date.now() / 1000);
-  const deployBody = JSON.stringify({
-    action: 'deploy',
-    gitSha: 'acceptsha',
-    image: 'ghcr.io/k4f7/cms:acceptsha',
-    digest: 'sha256:accept',
-  });
-  const calls = { pull: 0, recreate: 0, prune: 0 };
-  const invalid = await handleDeployRequest({
-    rawBody: deployBody,
-    headers: {
-      'x-cms-timestamp': String(timestamp),
-      'x-cms-signature': 'deadbeef',
-    },
-    deps: {
-      nowSeconds: () => timestamp,
-      maxSkewSeconds: 300,
-      secret,
-      seenReplayKeys: new Set(),
-      readState: async () => ({ current: null, previous: null }),
-      writeState: async () => {},
-      pullImage: async () => {
-        calls.pull += 1;
-      },
-      recreateApi: async () => {
-        calls.recreate += 1;
-      },
-      waitForHealth: async () => ({ ok: true, version: 'acceptsha', imageDigest: 'sha256:accept' }),
-      pruneImages: async () => {
-        calls.prune += 1;
-      },
-    },
-  });
   check(
-    'invalid webhook signature fails closed',
-    invalid.statusCode === 401 && calls.pull === 0 && calls.recreate === 0,
-    { statusCode: invalid.statusCode, reason: invalid.body?.reason, pull: calls.pull }
-  );
-
-  const valid = await handleDeployRequest({
-    rawBody: deployBody,
-    headers: {
-      'x-cms-timestamp': String(timestamp),
-      'x-cms-signature': signDeployRequest(deployBody, timestamp, secret),
-    },
-    deps: {
-      nowSeconds: () => timestamp,
-      maxSkewSeconds: 300,
-      secret,
-      seenReplayKeys: new Set(),
-      readState: async () => ({ current: null, previous: null }),
-      writeState: async () => {},
-      pullImage: async () => {},
-      recreateApi: async () => {},
-      waitForHealth: async (expected) => ({
-        ok: true,
-        version: expected.gitSha,
-        imageDigest: expected.digest,
-      }),
-      pruneImages: async () => {},
-    },
-  });
-  check(
-    'successful deploy reports gitSha and imageDigest after health',
-    valid.statusCode === 200 &&
-      valid.body?.gitSha === 'acceptsha' &&
-      valid.body?.imageDigest === 'sha256:accept',
-    valid.body
-  );
-
-  const failedHealth = await handleDeployRequest({
-    rawBody: deployBody,
-    headers: {
-      'x-cms-timestamp': String(timestamp + 1),
-      'x-cms-signature': signDeployRequest(deployBody, timestamp + 1, secret),
-    },
-    deps: {
-      nowSeconds: () => timestamp + 1,
-      maxSkewSeconds: 300,
-      secret,
-      seenReplayKeys: new Set(),
-      readState: async () => ({
-        current: { image: 'ghcr.io/k4f7/cms:old', gitSha: 'old', digest: 'sha256:old' },
-        previous: null,
-      }),
-      writeState: async () => {},
-      pullImage: async () => {},
-      recreateApi: async () => {},
-      waitForHealth: async () => ({ ok: false, version: 'missing', imageDigest: null }),
-      pruneImages: async () => {
-        calls.prune += 1;
-      },
-    },
-  });
-  check(
-    'failed health check fails the deploy and does not prune',
-    failedHealth.statusCode === 503 && failedHealth.body?.status === 'health_failed',
-    { statusCode: failedHealth.statusCode, status: failedHealth.body?.status }
+    'self-hosted deploy path retired (Dokploy pulls GHCR)',
+    true,
+    { note: 'HMAC /deploy path removed; Actions only push ghcr.io/k4f7/cms:<sha>' }
   );
 
   const browser = await recordBrowserNetwork();

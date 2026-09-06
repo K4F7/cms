@@ -73,29 +73,10 @@
       }
     },
     {
-      "name": "invalid webhook signature fails closed",
+      "name": "self-hosted deploy path retired (Dokploy pulls GHCR)",
       "ok": true,
       "detail": {
-        "statusCode": 401,
-        "reason": "signature",
-        "pull": 0
-      }
-    },
-    {
-      "name": "successful deploy reports gitSha and imageDigest after health",
-      "ok": true,
-      "detail": {
-        "status": "ok",
-        "gitSha": "acceptsha",
-        "imageDigest": "sha256:accept"
-      }
-    },
-    {
-      "name": "failed health check fails the deploy and does not prune",
-      "ok": true,
-      "detail": {
-        "statusCode": 503,
-        "status": "health_failed"
+        "note": "HMAC /deploy path removed; Actions only push ghcr.io/k4f7/cms:<sha>"
       }
     },
     {

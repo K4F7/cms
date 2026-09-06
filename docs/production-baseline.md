@@ -39,7 +39,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 2. 只配置公开构建变量 `STRAPI_ADMIN_BACKEND_URL`（API 的稳定 HTTPS origin）。
 3. 不要配置 `DATABASE_*`。`npm run build:admin` 在这些变量存在时会失败。
 4. Admin 自定义域名是 `meme.sein.moe`。在 Vercel 项目里绑定该域名，Cloudflare DNS 用 **DNS only** CNAME 指向 `cname.vercel-dns.com`。不要把该记录指回 louis。
-5. GitHub Environment `production` 的 `ADMIN_ORIGIN` 必须是 `https://meme.sein.moe`（无尾斜杠）。每次 `main` 发布会把它 upsert 进 louis `deploy/.env`。
+5. GitHub Environment `production` 的 `ADMIN_ORIGIN` 必须是 `https://meme.sein.moe`（无尾斜杠）。运行时 `deploy/.env`（或 Dokploy 环境变量）需与之对齐。
 6. API origin 变化后必须重新构建 Admin。`STRAPI_ADMIN_BACKEND_URL` 已是 `https://cms.sein.moe`。
 
 首次把旧 Payload 入口改接到 Strapi Admin 时，按顺序做：Vercel 加域名 → Cloudflare 改 CNAME → 1Panel 停掉 `meme.sein.moe` 指向 `:13000` 的站点/容器 → 重建 API 容器。交互步骤见 `scripts/attach-meme-admin.sh`。
@@ -52,7 +52,7 @@ Strapi 容器使用 `network_mode: host`，因此 `DATABASE_HOST=127.0.0.1` 即�
 4. 复制 `deploy/.env.example` 为 `deploy/.env`，从 GitHub Environment `production` 填入运行时密钥。
 5. `APP_VERSION` 设为当前 Git SHA。
 6. 媒体目录使用宿主机 bind mount（默认 `/opt/cms/media`）。这只保证同机容器重建，不是容灾。
-7. 启动：`docker compose -f deploy/compose.yml up -d --no-build`。日常镜像拉取与 webhook 由 #10 交付。
+7. 启动：`docker compose -f deploy/compose.yml up -d --no-build`。日常镜像由 Actions 推 GHCR，Dokploy 拉取；自建 webhook 已退役。
 
 可选的首次登录种子：`ARCHIVE_ADMIN_EMAIL` 与 `ARCHIVE_ADMIN_PASSWORD`。第一次成功登录后清掉密码。
 
@@ -97,15 +97,10 @@ npm run test:baseline
 - Archive Administrator 可上传受支持的图片或 PDF（产品上限 50 MiB），在 Admin / 预览 URL 中查看 Media Item，并通过 Work 的 `mediaItems`（WorkMedia Relationship）关联；超限上传失败且不留下 Media Item。
 - 媒体落在宿主机 `CMS_MEDIA_PATH` bind mount；本地基线通过 control `POST /restart` 验证 API 进程重建后预览仍可用。
 
-## 发布（K4F7/cms#10）
+## 发布
 
-1. 在 louis 上安装 OpenResty 站点（含独立 `location = /deploy`），访问日志使用不含 body 的格式。
-2. 安装并启用 `deploy/webhook/cms-deploy-webhook.service`（监听 `127.0.0.1:9100`）。
-3. 在 GitHub Environment `production` 配置：
-   - `CMS_DEPLOY_WEBHOOK_URL`（`https://cms.sein.moe/deploy`）
-   - `CMS_DEPLOY_WEBHOOK_SECRET`
-   - 变量 `ADMIN_ORIGIN=https://meme.sein.moe` 与 `PUBLIC_URL=https://cms.sein.moe`（公开，随 webhook upsert 进 `deploy/.env`）
-   - 可选 `CMS_RUNTIME_ENV_JSON`（写入 VPS `deploy/.env` 的运行时密钥 JSON）
-4. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`，再 HMAC 调用 webhook。
-5. 成功响应含 `gitSha` 与 `imageDigest`；健康失败不剪枝。回滚：对同一 webhook 发送 `{ "action": "redeploy-previous" }`。
-6. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。
+1. 在 louis 上安装 OpenResty 站点（仅 API upstream，无 `/deploy` location），访问日志使用不含 body 的格式。
+2. `main` 推送由 `.github/workflows/publish.yml` 构建并推送 `ghcr.io/k4f7/cms:<git-sha>`。
+3. 运行时由 Dokploy 拉取上述 GHCR 镜像并重建容器；本仓库不再维护自建 HMAC webhook，也不再使用 `CMS_DEPLOY_WEBHOOK_URL` / `CMS_DEPLOY_WEBHOOK_SECRET`。
+4. 运行时环境（`ADMIN_ORIGIN`、`PUBLIC_URL`、数据库与密钥等）在 Dokploy / 主机 `deploy/.env` 中配置，不要把 secret 写进仓库。
+5. Vercel Admin 由 Git Integration 随同一 `main` 提交发布；Admin 回退选择上一 Vercel deployment。

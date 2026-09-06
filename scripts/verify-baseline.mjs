@@ -1,6 +1,6 @@
 /**
  * Start the production-shaped local stack, then run health, Admin→API login,
- * Work authoring, Media Item, webhook contract, and acceptance-evidence checks.
+ * Work authoring, Media Item, and acceptance-evidence checks.
  * Used by `npm run test:baseline`. `CMS_ACCEPTANCE_EVIDENCE=1` also writes
  * redacted docs/acceptance/evidence.json.
  */
@@ -48,7 +48,6 @@ try {
       'tests/work-contract.test.mjs',
       'tests/work-authoring.test.mjs',
       'tests/media-upload.test.mjs',
-      'tests/deploy-webhook.test.mjs',
       'tests/acceptance-evidence.test.mjs',
     ],
     {
